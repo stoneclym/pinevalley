@@ -1,4 +1,9 @@
+/**
+ * Sample data for demo mode only (VITE_DEMO=1 or ?mock=1). This file is loaded on demand,
+ * so the real app never downloads it, and nothing here is ever written to Home Assistant.
+ */
 import type { HassEntities } from "home-assistant-js-websocket";
+import type { HubConfig } from "../config";
 
 const ctx = { id: "mock", parent_id: null, user_id: null };
 const at = "2026-11-20T10:00:00+00:00";
@@ -7,29 +12,21 @@ function entity(entity_id: string, state: string, attributes: Record<string, unk
   return { entity_id, state, attributes, last_changed: at, last_updated: at, context: ctx };
 }
 
-/** Fake entity states for design work without a live HA. */
-export function mockEntities(): HassEntities {
-  return Object.fromEntries(
-  [
-    entity("weather.home", "cloudy", {
-      friendly_name: "Home",
-      temperature: 48.4,
-      temperature_unit: "°F",
-    }),
-    entity("calendar.family", "off", { friendly_name: "Family", message: "Book club" }),
-    entity("calendar.us_holidays", "off", { friendly_name: "US Holidays" }),
-    entity("todo.shopping_list", "8", { friendly_name: "Shopping List" }),
-    entity("scene.evening", "2026-11-19T22:00:00+00:00", { friendly_name: "Evening" }),
-    entity("script.wake_up", "off", { friendly_name: "Wake Up" }),
-    entity("script.good_night", "off", { friendly_name: "Good Night" }),
-    entity("script.leaving_home", "off", { friendly_name: "Leaving Home" }),
+/** Sample entity states, including every entity config.json points at. */
+export function mockEntities(cfg: HubConfig): HassEntities {
+  const list = [
+    entity(cfg.weather || "weather.home", "cloudy", { friendly_name: "Home", temperature: 48.4, temperature_unit: "°F" }),
+    entity("calendar.family", "off", { friendly_name: "Family" }),
+    entity(cfg.groceryList || "todo.shopping_list", "8", { friendly_name: "Shopping List" }),
     entity("light.kitchen_lamp", "on", { friendly_name: "Kitchen Lamp" }),
-    entity("cover.garage_door", "closed", { friendly_name: "Garage Door", device_class: "garage" }),
-  ].map((e) => [e.entity_id, e]),
-  );
+    ...cfg.calendars.map((id) => entity(id, "off", { friendly_name: "Calendar" })),
+    ...cfg.scenes.map((sc) => entity(sc.entity_id, "off", { friendly_name: sc.label })),
+    ...cfg.statusTiles.map((t) => entity(t.entity_id, "closed", { friendly_name: t.label, device_class: "garage" })),
+  ];
+  return Object.fromEntries(list.map((e) => [e.entity_id, e]));
 }
 
-/** Sample events relative to "now", for dev mock mode only. */
+/** Sample events relative to "now". */
 export function mockEvents(now: Date) {
   const at = (dayOffset: number, h: number, m = 0) =>
     new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset, h, m);

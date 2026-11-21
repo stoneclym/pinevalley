@@ -1,51 +1,67 @@
 # Pine Valley Home Hub
 
-A wall iPad app (iPad Air 4, landscape, light theme only) served from Home Assistant.
-The full build spec is in [CLAUDE.md](CLAUDE.md). Progress is in [STATUS.md](STATUS.md). The Claude Design export is in [design/](design/)
-(only the `*-Light` files apply; dark mode was removed on purpose).
+A wall iPad app (iPad Air 4, landscape, light theme only) that talks to Home Assistant.
+The build spec is [CLAUDE.md](CLAUDE.md). Progress, and what is real versus sample data, is in [STATUS.md](STATUS.md).
+The Claude Design export is in [design/](design/) (only the `*-Light` files apply).
+
+## Modes
+
+- **Real (default).** Data comes only from Home Assistant. With nothing connected, screens stay
+  empty and a small label says Home Assistant isn't set up.
+- **Demo.** Sample data, never sent to Home Assistant, labelled "Demo · sample data".
+  Turn it on with `?mock=1` in the URL, or build with `VITE_DEMO=1`.
 
 ## Develop
 
 ```bash
 npm install
-npm run mock      # mock mode: fake weather, calendar and groceries, no HA needed
+```
+
+```bash
+npm run mock
+```
+
+```bash
 npm test
 ```
 
-To develop against a real HA, copy `.env.example` to `.env.development.local` and fill in
-a long-lived access token. That file is ignored by git and is never read by `npm run build`.
+For a real Home Assistant locally, copy `.env.example` to `.env.local` and set `VITE_HA_URL`
+and `VITE_HA_TOKEN` (a long-lived token; dev server only, ignored by production builds).
 
-Mock mode exists only in development builds and only with `?mock=1`. Production builds
-contain no sample data.
+## Deploy on Vercel
 
-`npm run build:demo` makes a sample-data demo in `dist-demo/` that scales the iPad screen to fit
-any window (it never talks to Home Assistant). `dist-demo/artifact.html` is the version published
-as a private claude.ai page for walking through the UI on a phone.
+`vercel.json` sets everything: `npm ci`, `npm run build`, output folder `dist`.
+Set these environment variables in Vercel (all public values, none are secrets):
 
-## Deploy to Home Assistant
+| Name | Value |
+|---|---|
+| `VITE_HA_URL` | Your Home Assistant HTTPS address, e.g. `https://home.example.com:8123` |
+| `VITE_PARSE_FUNCTION_URL` | `https://<project>.supabase.co/functions/v1/parse-groceries` (when it exists) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | The Supabase project's publishable key (when it exists) |
 
-```bash
-npm run build
+Leave `VITE_DEMO` and `VITE_HA_TOKEN` unset in Vercel.
+
+Home Assistant must allow the Vercel address. In `configuration.yaml`:
+
+```yaml
+http:
+  cors_allowed_origins:
+    - https://<your-app>.vercel.app
 ```
 
-Copy everything in `dist/` to `/config/www/home-hub/` on the HA host. Then on the iPad:
+## Deploy inside Home Assistant (alternative)
 
-1. Open `https://<ha-name>:8123/local/home-hub/index.html` in Safari (the HTTPS name from spec section 9;
-   the microphone does not work over plain HTTP).
-2. Share → Add to Home Screen.
-3. Open it **from the Home Screen** and sign in there with the `iPad Hub` HA user.
+Copy `dist/` to `/config/www/home-hub/` and open `https://<ha-name>:8123/local/home-hub/index.html`.
+Served this way, the app finds Home Assistant on its own and no CORS setting is needed.
 
-Files in `www` are public on the home network, so `config.json` holds entity IDs only.
+## Useful addresses
 
-## Setup page
+- `/?mock=1`: the demo with sample data
+- `/mic-test/` or `/?mictest=1`: the Phase 0 microphone test. Add it to the Home Screen as its
+  own app. It records 5 seconds, shows the level, plays back, and logs every try and every launch.
+- `/#/setup`: lists the entities your Home Assistant user can see, to copy into `public/config.json`
 
-Open `#/setup` (for example `https://<ha-name>:8123/local/home-hub/index.html#/setup`) to list the
-weather, calendar, to-do, scene and script entities the signed-in user can see, and to see
-which IDs in `config.json` were not found.
+`public/config.json` holds entity IDs and the optional `haUrl` (which wins over `VITE_HA_URL`).
+It is public: never put a token or key in it.
 
-## Phase 0: microphone test
-
-`dist/mic-test/` is a one-page test with no build step. After copying `dist/` to HA, open
-`https://<ha-name>:8123/local/home-hub/mic-test/index.html` in Safari, Add to Home Screen, and open it
-from there. It records 5 seconds, shows the level, plays it back, and keeps a log of every
-attempt and every launch, so you can compare before and after force-closing and sleeping.
+`npm run build:demo` builds the sample-data version that's published as a private claude.ai page.

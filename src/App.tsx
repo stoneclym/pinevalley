@@ -27,8 +27,9 @@ function useSetupHash(): boolean {
 
 function OfflineIndicator() {
   const status = useConnectionStatus();
-  if (status !== "offline") return null;
-  return <div className="offline-dot" role="status">Offline</div>;
+  if (status === "offline") return <div className="offline-dot" role="status">Offline</div>;
+  if (status === "unconfigured") return <div className="offline-dot" role="status">Home Assistant not set up</div>;
+  return null;
 }
 
 export function App({ config }: { config: HubConfig }) {

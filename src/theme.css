@@ -188,25 +188,28 @@ button { transition: transform 160ms ease; }
   button:active { transform: none; }
 }
 
-/* Demo build only: the 1180 × 820 canvas, scaled to fit and centred. A transformed #root
-   also becomes the frame for fixed-position layers (sheet, transitions). */
-html.demo body { background: #2b2118; }
-html.demo #root {
+/* The 1180 × 820 design canvas, scaled to fit and centred (scale 1 on the iPad Air).
+   A transformed #root also becomes the frame for fixed-position layers (sheet, transitions). */
+body { background: #e2cfb2; } /* fills any letterbox around the scaled canvas */
+#root {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 1180px;
   height: 820px;
-  transform: translate(-50%, -50%) scale(var(--demo-scale, 1));
+  transform: translate(-50%, -50%) scale(var(--fit-scale, 1));
   overflow: hidden;
-  border-radius: 18px;
 }
 .demo-tag {
   position: fixed;
   left: 50%;
-  bottom: 6px;
+  bottom: max(6px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
+  z-index: 50;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: rgba(43, 33, 24, .55);
   font: 500 12px/1 var(--font-sans);
-  color: rgba(244, 238, 228, .7);
+  color: #f4eee4;
   pointer-events: none;
 }

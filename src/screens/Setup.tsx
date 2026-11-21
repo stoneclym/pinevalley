@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { HubConfig } from "../config";
-import { currentUserName, MOCK } from "../ha/connection";
+import { currentUserName, haUrl, MOCK } from "../ha/connection";
 import { useEntities } from "../ha/entities";
 import { WEATHER_CONDITIONS, WeatherIcon } from "../ui/icons";
 import { Screen } from "./Screen";
@@ -43,7 +43,7 @@ export function Setup({ config }: { config: HubConfig }) {
         </a>
         <h1>Setup</h1>
         <span className="setup-user">
-          {MOCK ? "Mock mode" : `Signed in as ${user}`} · {all.length} entities
+          {MOCK ? "Sample data" : `${haUrl() ?? "No Home Assistant address"} · ${user}`} · {all.length} entities
         </span>
       </header>
 

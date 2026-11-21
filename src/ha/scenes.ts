@@ -7,7 +7,7 @@ export async function runScene(entityId: string): Promise<void> {
   if (domain !== "scene" && domain !== "script") {
     throw new Error(`Not a scene or script: ${entityId}`);
   }
-  if (__MOCK_BUILD__ && MOCK) {
+  if (MOCK) {
     await new Promise((r) => setTimeout(r, 500));
     return;
   }

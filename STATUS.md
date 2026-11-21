@@ -1,6 +1,6 @@
 # Status
 
-Updated 2026-11-20. Spec: [CLAUDE.md](CLAUDE.md).
+Updated 2026-11-21. Spec: [CLAUDE.md](CLAUDE.md).
 
 ## Where each phase stands
 
@@ -16,6 +16,23 @@ Updated 2026-11-20. Spec: [CLAUDE.md](CLAUDE.md).
 | 7 | Scene tiles with confirmation and error state | Done | Not yet. Needs the HA scripts |
 | 7b | Garage door status tile (third tile, read-only) | Done | Not yet. Needs the garage entity ID |
 | 8 | Polish: motion, empty states, offline label | Partly | Frame rate and a day-long soak test happen on the iPad |
+
+## Real versus sample data
+
+The default build is real mode. Sample data shows only with `?mock=1` or a `VITE_DEMO=1` build.
+It loads from its own file (`mock-*.js`), which real mode never downloads, and it is never written
+to Home Assistant.
+
+| Phase | Real mode | Demo mode |
+|---|---|---|
+| 0 Mic test | Real microphone, real recording. Nothing is uploaded | Same page, no sample data |
+| 1 Connection | Real HA login (`getAuth`), live entity states, setup page lists real entities | No connection; sample entities |
+| 2 Home | Real clock and date. Weather, events, badge and garage state come from HA | Sample weather (48°, cloudy), events, 8 groceries, garage Closed |
+| 3 Calendar | `calendar.get_events` for today plus 6 days, every 5 min | Sample events relative to the current time |
+| 4 Groceries | Live `todo/item/subscribe` list; checks and Clear go to HA | Sample list; changes stay in the page |
+| 5 Typed add | Local parser (real code). Adds go to HA | Same parser; adds stay in the page |
+| 6 Voice | Real recording. Sorting needs the `parse-groceries` function, which doesn't exist yet, so the sheet says voice isn't set up after recording | Same |
+| 7 Scenes, garage | `script.turn_on` / `scene.turn_on`; garage state from HA | Tiles show a fake success after half a second |
 
 ## Checked here (dev machine, mock mode, 1180 × 820)
 

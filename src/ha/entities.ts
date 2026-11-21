@@ -1,26 +1,31 @@
 import { useEffect, useState } from "react";
 import { type HassEntities, subscribeEntities } from "home-assistant-js-websocket";
+import { getConfig } from "../config";
 import { getConnection, MOCK } from "./connection";
-import { mockEntities } from "./mock";
 
 type Listener = (e: HassEntities) => void;
 
 // One shared subscription for the whole app; the last known states stay on screen
 // while HA is unreachable.
-// `__MOCK_BUILD__ &&` (a build-time constant) lets the production build drop the mock data entirely.
-let latest: HassEntities | null = __MOCK_BUILD__ && MOCK ? mockEntities() : null;
+let latest: HassEntities | null = null;
 const listeners = new Set<Listener>();
 let started = false;
 
+function publish(ents: HassEntities) {
+  latest = ents;
+  listeners.forEach((l) => l(ents));
+}
+
 function start() {
-  if (started || MOCK) return;
+  if (started) return;
   started = true;
+  if (MOCK) {
+    import("./mock").then((m) => publish(m.mockEntities(getConfig())));
+    return;
+  }
   getConnection()
     .then((conn) =>
-      subscribeEntities(conn, (ents) => {
-        latest = ents;
-        listeners.forEach((l) => l(ents));
-      }),
+      subscribeEntities(conn, publish),
     )
     .catch(() => {
       started = false; // allow a retry on the next subscriber

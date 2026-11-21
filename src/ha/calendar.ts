@@ -12,8 +12,7 @@ import { callService } from "home-assistant-js-websocket";
 import { type CalEvent, normalizeEvents, type RawEvent } from "../lib/events";
 import { createStore, useStore } from "../lib/store";
 import { addDays, haDateTime, startOfDay } from "../lib/time";
-import { getConnection, MOCK } from "./connection";
-import { mockEvents } from "./mock";
+import { getConnection, haUrl, MOCK } from "./connection";
 
 const REFRESH_MS = 5 * 60_000;
 
@@ -25,10 +24,13 @@ let timer: number | undefined;
 let started = false;
 
 async function refresh() {
-  if (__MOCK_BUILD__ && MOCK) {
+  if (MOCK) {
+    const { mockEvents } = await import("./mock");
     store.set({ events: mockEvents(new Date()), loaded: true });
     return;
   }
+  // Without a Home Assistant address we can't know the day's events, so say nothing at all.
+  if (!haUrl()) return;
   const ids = calendarIds.filter((id) => id.startsWith("calendar.") && !id.includes("REPLACE"));
   if (!ids.length) {
     store.set({ events: [], loaded: true });

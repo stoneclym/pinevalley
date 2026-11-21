@@ -24,6 +24,8 @@ export type VoiceConfig = {
 };
 
 export type HubConfig = {
+  /** Home Assistant base URL, e.g. https://home.example.com:8123. Empty: use VITE_HA_URL. */
+  haUrl?: string;
   room: string;
   autoReturnSeconds: number;
   weather: string;
@@ -45,14 +47,41 @@ const DEFAULTS: HubConfig = {
   statusTiles: [],
 };
 
-/** Loads config.json from next to index.html. Never holds secrets: entity IDs only. */
+let current: HubConfig = DEFAULTS;
+/** The config loaded at startup. */
+export function getConfig(): HubConfig {
+  return current;
+}
+
+const isPlaceholder = (v: unknown) => typeof v !== "string" || !v.trim() || /REPLACE/.test(v);
+
+/**
+ * Voice settings: config.json may hold timing; the function URL and the Supabase
+ * publishable key come from config.json if filled in, otherwise from the build's
+ * VITE_PARSE_FUNCTION_URL and VITE_SUPABASE_PUBLISHABLE_KEY. The publishable key is public
+ * by design; OpenAI and Anthropic keys never reach the browser.
+ */
+function resolveVoice(v: Partial<VoiceConfig> | null | undefined): VoiceConfig | null {
+  const functionUrl = !isPlaceholder(v?.functionUrl) ? v!.functionUrl! : (import.meta.env.VITE_PARSE_FUNCTION_URL ?? "");
+  const publishableKey = !isPlaceholder(v?.publishableKey) ? v!.publishableKey! : (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "");
+  return {
+    functionUrl: functionUrl.trim(),
+    publishableKey: publishableKey.trim(),
+    maxSeconds: v?.maxSeconds ?? 30,
+    silenceStopSeconds: v?.silenceStopSeconds ?? 2,
+  };
+}
+
+/** Loads config.json from next to index.html. Never holds secrets: entity IDs and public values only. */
 export async function loadConfig(): Promise<HubConfig> {
+  let raw: Partial<HubConfig> = {};
   try {
     const res = await fetch("./config.json", { cache: "no-store" });
     if (!res.ok) throw new Error(`config.json: HTTP ${res.status}`);
-    return { ...DEFAULTS, ...(await res.json()) };
+    raw = await res.json();
   } catch (err) {
     console.error("Could not load config.json, using defaults", err);
-    return DEFAULTS;
   }
+  current = { ...DEFAULTS, ...raw, voice: resolveVoice(raw.voice) };
+  return current;
 }

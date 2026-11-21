@@ -1,15 +1,36 @@
 {
+  "haUrl": "",
   "room": "scullery",
   "autoReturnSeconds": 60,
   "weather": "weather.home",
-  "calendars": ["calendar.REPLACE_FAMILY"],
+  "calendars": [
+    "calendar.REPLACE_FAMILY"
+  ],
   "groceryList": "todo.shopping_list",
-  "voice": { "functionUrl": "https://REPLACE.supabase.co/functions/v1/parse-groceries", "publishableKey": "REPLACE", "maxSeconds": 30, "silenceStopSeconds": 2 },
+  "voice": {
+    "maxSeconds": 30,
+    "silenceStopSeconds": 2
+  },
   "scenes": [
-    { "id": "wake-up", "label": "Wake Up", "icon": "sunrise", "entity_id": "script.wake_up" },
-    { "id": "good-night", "label": "Good Night", "icon": "moon", "entity_id": "script.good_night" }
+    {
+      "id": "wake-up",
+      "label": "Wake Up",
+      "icon": "sunrise",
+      "entity_id": "script.wake_up"
+    },
+    {
+      "id": "good-night",
+      "label": "Good Night",
+      "icon": "moon",
+      "entity_id": "script.good_night"
+    }
   ],
   "statusTiles": [
-    { "id": "garage", "label": "Garage", "icon": "garage", "entity_id": "cover.REPLACE_GARAGE_DOOR" }
+    {
+      "id": "garage",
+      "label": "Garage",
+      "icon": "garage",
+      "entity_id": "cover.REPLACE_GARAGE_DOOR"
+    }
   ]
 }

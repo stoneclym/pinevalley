@@ -10,7 +10,6 @@ import { useEffect } from "react";
 import { callService } from "home-assistant-js-websocket";
 import { createStore, useStore } from "../lib/store";
 import { getConnection, MOCK } from "./connection";
-import { mockTodoItems } from "./mock";
 
 export type TodoStatus = "needs_action" | "completed";
 export type TodoItem = { uid: string; summary: string; status: TodoStatus };
@@ -25,8 +24,8 @@ function start(id: string) {
   if (started) return;
   started = true;
   entityId = id;
-  if (__MOCK_BUILD__ && MOCK) {
-    store.set({ items: mockTodoItems(), loaded: true });
+  if (MOCK) {
+    import("./mock").then((m) => store.set({ items: m.mockTodoItems(), loaded: true }));
     return;
   }
   getConnection()
@@ -65,7 +64,7 @@ export async function addItems(input: string[]): Promise<void> {
   const onList = new Set(store.get().items.filter((i) => i.status !== "completed").map((i) => i.summary.trim().toLowerCase()));
   const names = input.filter((n) => !onList.has(n.trim().toLowerCase()));
   if (!names.length) return;
-  if (__MOCK_BUILD__ && MOCK) {
+  if (MOCK) {
     localChange((items) => [
       ...items,
       ...names.map((summary) => ({ uid: crypto.randomUUID(), summary, status: "needs_action" as const })),
@@ -78,12 +77,12 @@ export async function addItems(input: string[]): Promise<void> {
 export async function setStatus(item: TodoItem, status: TodoStatus): Promise<void> {
   // Show the change at once; the subscription confirms (or corrects) it a moment later.
   localChange((items) => items.map((i) => (i.uid === item.uid ? { ...i, status } : i)));
-  if (__MOCK_BUILD__ && MOCK) return;
+  if (MOCK) return;
   await call("update_item", { item: item.uid, status });
 }
 
 export async function clearCompleted(): Promise<void> {
   localChange((items) => items.filter((i) => i.status !== "completed"));
-  if (__MOCK_BUILD__ && MOCK) return;
+  if (MOCK) return;
   await call("remove_completed_items", {});
 }

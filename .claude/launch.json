@@ -15,18 +15,16 @@
       "port": 5173
     },
     {
-      "name": "hub-demo",
+      "name": "hub-prod",
       "runtimeExecutable": "npx",
       "runtimeArgs": [
         "vite",
         "preview",
-        "--outDir",
-        "dist-demo",
         "--port",
-        "4174",
+        "4173",
         "--strictPort"
       ],
-      "port": 4174
+      "port": 4173
     }
   ]
 }

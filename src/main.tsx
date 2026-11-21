@@ -7,34 +7,44 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { loadConfig } from "./config";
-import { DEMO, getConnection, MOCK } from "./ha/connection";
+import { configureHa, getConnection, MOCK } from "./ha/connection";
 
-// Start signing in right away (getAuth may redirect to HA's login page).
-if (!MOCK) getConnection().catch(() => {});
+// ?mictest=1 opens the Phase 0 microphone test page (also reachable at /mic-test/).
+if (new URLSearchParams(location.search).get("mictest") === "1") {
+  location.replace(new URL("mic-test/index.html", location.href).href);
+} else {
+  start();
+}
 
-// Block long-press menus and pinch zoom on the wall iPad.
-document.addEventListener("contextmenu", (e) => e.preventDefault());
-document.addEventListener("gesturestart", (e) => e.preventDefault());
+function start() {
+  // Block long-press menus and pinch zoom on the wall iPad.
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
 
-// Demo build: draw the iPad's 1180 × 820 canvas scaled to fit this screen.
-if (DEMO) {
-  document.documentElement.classList.add("demo");
+  // Draw the 1180 × 820 design canvas scaled to fit the window. On the iPad Air in the
+  // installed app the scale is 1; in a browser tab or on a phone it shrinks to fit.
   const fit = () => {
     const s = Math.min(window.innerWidth / 1180, window.innerHeight / 820);
-    document.documentElement.style.setProperty("--demo-scale", String(s));
+    document.documentElement.style.setProperty("--fit-scale", String(s));
   };
   fit();
   window.addEventListener("resize", fit);
-  const tag = document.createElement("div");
-  tag.className = "demo-tag";
-  tag.textContent = "Demo \u00B7 sample data";
-  document.body.appendChild(tag);
-}
 
-loadConfig().then((config) => {
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-      <App config={config} />
-    </StrictMode>,
-  );
-});
+  if (MOCK) {
+    const tag = document.createElement("div");
+    tag.className = "demo-tag";
+    tag.textContent = "Demo · sample data";
+    document.body.appendChild(tag);
+  }
+
+  loadConfig().then((config) => {
+    configureHa(config.haUrl);
+    // Start signing in right away (getAuth may redirect to HA's login page).
+    if (!MOCK) getConnection().catch(() => {});
+    createRoot(document.getElementById("root")!).render(
+      <StrictMode>
+        <App config={config} />
+      </StrictMode>,
+    );
+  });
+}
