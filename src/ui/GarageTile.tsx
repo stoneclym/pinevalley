@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import type { StatusTileConfig } from "../config";
 import { commandDoor, type DoorState, useDoor } from "../ha/door";
 import { useConnectionStatus } from "../ha/useStatus";
-import { formatSince } from "../lib/time";
-import { useNow } from "../lib/useNow";
 import { GarageClosed, GarageOpen } from "./icons";
 import "../voice/VoiceSheet.css"; // shared glass sheet styles
 import "./GarageTile.css";
@@ -13,7 +11,7 @@ const STATE_TEXT: Record<DoorState, string> = {
   open: "Open",
   opening: "Opening…",
   closing: "Closing…",
-  unavailable: "Offline", // reads "Garage / Offline" under the label
+  unavailable: "Offline",
 };
 
 /** How long the tile says "Sending…" while waiting for the door to report movement. */
@@ -75,7 +73,6 @@ function GarageSheet({ action, onConfirm, onClose, sheet }: {
  * nothing moves without the second tap. No commands while the door is moving or offline.
  */
 export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; onSheetChange?: (open: boolean) => void }) {
-  const now = useNow();
   const live = useDoor(tile.entity_id);
   const status = useConnectionStatus();
   // Never heard from Home Assistant (offline or not set up): say the garage is offline.
@@ -131,19 +128,19 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
   };
 
   const text = !door.known ? "" : sending ? "Sending…" : STATE_TEXT[door.state];
-  const showSince = door.known && door.state !== "unavailable" && !sending && door.since;
 
   return (
     <>
       <button type="button" onClick={ask} disabled={!tappable}
         className={`glass tile garage garage-${door.state} ${sending ? "garage-sending" : ""} ${isOpen ? "garage-open-tint" : ""}`}
         aria-label={`${tile.label}: ${door.state === "unavailable" && !sending ? "offline" : text || "loading"}${tappable ? `. Tap to ${door.state === "open" ? "close" : "open"}` : ""}`}>
-        <span className="tile-icon">{isOpen ? <GarageOpen size={32} /> : <GarageClosed size={32} />}</span>
-        <span className="tile-text">
-          <span className="tile-label">{tile.label}</span>
-          <span className="tile-state">{text}</span>
-          {showSince && <span className="garage-since">{formatSince(door.since!, now, true)}</span>}
+        {/* Same layout as the Groceries tile: icon top left, state where its badge sits,
+            and the label on the bottom line with the other tiles. */}
+        <span className="tile-top">
+          <span className="tile-icon">{isOpen ? <GarageOpen size={32} /> : <GarageClosed size={32} />}</span>
+          <span className="garage-state">{text}</span>
         </span>
+        <span className="tile-label">{tile.label}</span>
       </button>
       {sheet && (
         <GarageSheet action={sheet.action} sheet={sheet.state} onConfirm={confirm}

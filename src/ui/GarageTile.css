@@ -1,8 +1,7 @@
-/* Garage tile: the same size and layout as the other tiles (icon, label, state underneath). */
+/* Garage tile: the same size and layout as the other tiles. The state sits in the top corner. */
 .garage:disabled { cursor: default; }
 .garage:disabled:active { transform: none; }
-.garage .tile-text { gap: 3px; }
-.garage-since { font: 500 12px/1.1 var(--font-sans); color: var(--ink-2); white-space: nowrap; }
+.garage-state { font: 600 14px/1 var(--font-sans); color: var(--ink-2); white-space: nowrap; padding-top: 4px; }
 
 /* Open (and opening): a warm amber tint, so an open door stands out from across the room. */
 .garage-open-tint {
@@ -11,8 +10,7 @@
   box-shadow: inset 0 1px 0 rgba(255, 240, 220, .95), 0 14px 36px rgba(140, 80, 20, .24);
   color: #5a2e0c;
 }
-.garage-open-tint .tile-state { color: #5a2e0c; font-weight: 600; }
-.garage-open-tint .garage-since { color: #7a4515; }
+.garage-open-tint .garage-state { color: #5a2e0c; }
 
 .garage-opening .tile-icon, .garage-closing .tile-icon, .garage-sending .tile-icon {
   animation: tile-pulse 1.1s ease-in-out infinite;
