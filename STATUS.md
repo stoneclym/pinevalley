@@ -11,7 +11,7 @@ Updated 2026-11-21. Spec: [CLAUDE.md](CLAUDE.md).
 | 2 | Home: clock, date and weather, tiles, Today panel | Done | Not yet |
 | 3 | Calendar view: Today and This week | Done | Not yet. Needs real calendar IDs |
 | 4 | Grocery list: cards, check off, Completed, Clear, badge, live updates | Done | Not yet |
-| 5 | Add by typing | Removed on request: the add bar opens voice mode, and the app has no keyboard input | n/a |
+| 5 | Add by typing | Backup only: "Type" in the voice sheet (and on any voice error) opens a text field | Not yet |
 | 6 | Voice: Listening, Transcribing, Review, error states, recorder | Front end done | Needs the `parse-groceries` backend |
 | 7 | Scene tiles with confirmation and error state | Done | Not yet. Needs the HA scripts |
 | 7b | Garage tile: live state, since-time, confirm sheet, open/close via `cover.*` | Done | Not yet. `cover.pine_valley_garage_door` |
@@ -79,3 +79,12 @@ it needs only the `OPENAI_API_KEY` secret. The spec planned to sort with Claude 
 what's deployed. It checks the caller's Origin against `ALLOWED_ORIGINS` (default includes
 `https://pinevalley.vercel.app` and local dev ports), limits clips to 2 MB and text to 1,500
 characters, and rate-limits per instance.
+
+## Microphone on the iPad (Home Screen app)
+
+iOS can open the microphone and then cut it off in a Home Screen web app (the orange dot
+appears, then disappears), after which it sends silence until the iPad restarts. To be as
+gentle as possible, the recorder now uses only getUserMedia + MediaRecorder (no AudioContext;
+the waveform is decorative), keeps one microphone stream open for 3 minutes after use so iOS
+asks once per session, drops it when the app is hidden, and stops at once with "The microphone
+stopped" if iOS mutes or ends the track. The keyboard backup is always one tap away.

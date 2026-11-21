@@ -1,15 +1,18 @@
 /**
- * Microphone recording for the voice sheet: getUserMedia + MediaRecorder, with the level
- * from an AnalyserNode on the same stream. Safari records audio/mp4, others audio/webm.
- * The microphone tracks are released the moment recording stops or is cancelled
- * (spec risk 2: installed iPad web apps can lose the mic if a stream is left open).
+ * Microphone recording for the voice sheet, built to be as gentle with iOS as possible.
+ *
+ * - Microphone only: getUserMedia + MediaRecorder, nothing else. No AudioContext or level meter,
+ *   because opening a second audio channel can make iOS reshuffle its audio setup and cut the
+ *   microphone off in a Home Screen app. The waveform on screen is a decorative animation.
+ * - One microphone stream is kept open between recordings (for a few minutes after the last
+ *   one), so iOS asks for permission once per session instead of every time. It is dropped when
+ *   the app is hidden or the iPad sleeps, and replaced if iOS ever mutes or ends it.
+ * - If iOS cuts the microphone off mid-recording (the orange dot disappears: the track is muted
+ *   or ended), recording stops right away with a clear error instead of listening to silence.
  */
 
 export type RecorderOptions = {
   maxSeconds: number;
-  silenceStopSeconds: number;
-  /** Called about 30 times a second with a 0–1 level. */
-  onLevel: (level: number) => void;
 };
 
 export type Recorder = {
@@ -17,30 +20,63 @@ export type Recorder = {
   stop: () => void;
   /** Stop and throw the clip away. */
   cancel: () => void;
-  /** Resolves with the clip after stop() or an automatic stop; null after cancel(). */
+  /** Resolves with the clip after stop() or the time limit; null after cancel(). Rejects with MicCutError if iOS cuts the mic. */
   result: Promise<Blob | null>;
-  /** Short facts for the error line when something goes wrong (track muted, meter state…). */
+  /** Short facts for the error line when something goes wrong. */
   diagnostics: () => string;
 };
 
-const SPEECH_LEVEL = 0.06;      // level that counts as someone talking
-const NO_SPEECH_GIVE_UP_S = 8;  // stop if nobody says anything at all
+/** iOS took the microphone away (muted or ended the track), or sent no audio at all. */
+export class MicCutError extends Error {
+  name = "MicCutError";
+}
+
+const KEEP_OPEN_MS = 3 * 60_000;
 
 export function pickMimeType(): string {
   const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
   return types.find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) ?? "";
 }
 
-/**
- * Call this directly from a tap handler.
- *
- * Order matters on iOS, and matches the Phase 0 mic test page: microphone first, recorder
- * started at once and collecting audio in small slices as it goes, and only then the level
- * meter. Creating the meter's AudioContext before the microphone could leave iOS capturing in
- * playback mode and hand back an empty recording.
- */
+// ---- One shared microphone stream ----
+
+let shared: MediaStream | null = null;
+let closeTimer: number | undefined;
+
+function healthy(s: MediaStream | null): s is MediaStream {
+  const t = s?.getAudioTracks()[0];
+  return !!t && t.readyState === "live" && !t.muted && t.enabled;
+}
+
+/** Close the shared microphone (the orange dot goes away). */
+export function closeMicrophone() {
+  clearTimeout(closeTimer);
+  shared?.getTracks().forEach((t) => t.stop());
+  shared = null;
+}
+
+async function openMicrophone(): Promise<MediaStream> {
+  clearTimeout(closeTimer);
+  if (healthy(shared)) return shared;
+  closeMicrophone();
+  shared = await navigator.mediaDevices.getUserMedia({ audio: true });
+  return shared;
+}
+
+function closeLater() {
+  clearTimeout(closeTimer);
+  closeTimer = window.setTimeout(closeMicrophone, KEEP_OPEN_MS);
+}
+
+// A hidden or sleeping app gets a fresh microphone next time; an old one is usually dead.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") closeMicrophone();
+});
+
+/** Call this directly from a tap handler, so the microphone request happens inside the tap. */
 export async function startRecording(opts: RecorderOptions): Promise<Recorder> {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const stream = await openMicrophone();
+  const track = stream.getAudioTracks()[0];
 
   const mimeType = pickMimeType();
   const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
@@ -48,49 +84,27 @@ export async function startRecording(opts: RecorderOptions): Promise<Recorder> {
   rec.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) chunks.push(e.data);
   };
-  rec.start(250); // deliver audio every 250 ms instead of all at the end
 
-  // Level meter for the waveform and silence detection. If iOS keeps it suspended, the meter
-  // just reads zero: recording still works, and silence auto-stop is skipped (see below).
-  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  let ctx: AudioContext | null = null;
-  let analyser: AnalyserNode | null = null;
-  try {
-    ctx = new Ctx();
-    void ctx.resume().catch(() => {});
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 1024;
-    ctx.createMediaStreamSource(stream).connect(analyser);
-  } catch (err) {
-    console.warn("level meter unavailable", err);
-  }
-  const buf = new Float32Array(1024);
-
+  const startedAt = performance.now();
+  let stoppedAt = 0;
   let cancelled = false;
-  let raf = 0;
-  let released = false;
-  const release = () => {
-    if (released) return;
-    released = true;
-    cancelAnimationFrame(raf);
-    stream.getTracks().forEach((t) => t.stop());
-    ctx?.close().catch(() => {});
-    opts.onLevel(0);
-  };
+  let cut = false;
+  let settled = false;
+  let limit: number | undefined;
 
-  const result = new Promise<Blob | null>((resolve, reject) => {
-    rec.onstop = () => {
-      // Safari can deliver the last slice just after "stop"; wait a moment before building the clip.
-      window.setTimeout(() => {
-        const blob = cancelled ? null : new Blob(chunks, { type: rec.mimeType || mimeType || "audio/mp4" });
-        release();
-        resolve(blob);
-      }, 120);
-    };
-    rec.onerror = (e) => {
-      release();
-      reject((e as unknown as { error?: Error }).error ?? new Error("Recording failed"));
-    };
+  const diagnostics = () =>
+    [
+      `${chunks.length} slices`,
+      `${(((stoppedAt || performance.now()) - startedAt) / 1000).toFixed(1)} s`,
+      track ? `track ${track.readyState}${track.muted ? " muted" : ""}${track.enabled ? "" : " disabled"}` : "no audio track",
+      rec.mimeType || mimeType || "default type",
+    ].join(" · ");
+
+  let resolveResult!: (b: Blob | null) => void;
+  let rejectResult!: (e: Error) => void;
+  const result = new Promise<Blob | null>((res, rej) => {
+    resolveResult = res;
+    rejectResult = rej;
   });
 
   const stop = () => {
@@ -99,65 +113,65 @@ export async function startRecording(opts: RecorderOptions): Promise<Recorder> {
     try {
       rec.requestData();
     } catch {
-      /* not supported: stop still delivers the final slice */
+      /* stop still delivers the final slice */
     }
     rec.stop();
   };
-  const startedAt = performance.now();
-  let stoppedAt = 0;
-  let heardSpeech = false;
-  let meterWorks = false;
-  const track = stream.getAudioTracks()[0];
-  const trackFacts = () =>
-    track ? `track ${track.readyState}${track.muted ? " muted" : ""}${track.enabled ? "" : " disabled"}` : "no audio track";
-  let quietSince = startedAt;
 
-  const tick = () => {
-    let level = 0;
-    if (analyser) {
-      analyser.getFloatTimeDomainData(buf);
-      let sum = 0;
-      for (const v of buf) sum += v * v;
-      if (sum > 0) meterWorks = true;
-      level = Math.min(1, Math.sqrt(sum / buf.length) * 4);
-    }
-    opts.onLevel(level);
-
-    const t = performance.now();
-    if (level > SPEECH_LEVEL) {
-      heardSpeech = true;
-      quietSince = t;
-    }
-    const elapsed = (t - startedAt) / 1000;
-    const quietFor = (t - quietSince) / 1000;
-    if (
-      elapsed >= opts.maxSeconds ||
-      // Silence rules only when the meter actually hears something; otherwise wait for Stop.
-      (meterWorks && heardSpeech && quietFor >= opts.silenceStopSeconds) ||
-      (meterWorks && !heardSpeech && elapsed >= NO_SPEECH_GIVE_UP_S)
-    ) {
-      stop();
-      return;
-    }
-    raf = requestAnimationFrame(tick);
+  // The orange dot disappearing: iOS muted or ended the track. Stop now and say so.
+  const onCut = () => {
+    cut = true;
+    stop();
   };
-  raf = requestAnimationFrame(tick);
+
+  const cleanup = () => {
+    clearTimeout(limit);
+    track?.removeEventListener("mute", onCut);
+    track?.removeEventListener("ended", onCut);
+  };
+
+  rec.onstop = () => {
+    // Safari can deliver the last slice just after "stop"; wait a moment before building the clip.
+    window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (cut) {
+        closeMicrophone(); // a cut microphone won't recover; get a fresh one next time
+        rejectResult(new MicCutError(`iOS cut off the microphone · ${diagnostics()}`));
+        return;
+      }
+      closeLater();
+      if (cancelled) return resolveResult(null);
+      const blob = new Blob(chunks, { type: rec.mimeType || mimeType || "audio/mp4" });
+      if (!blob.size) {
+        closeMicrophone();
+        rejectResult(new MicCutError(`The iPad sent no audio · ${diagnostics()}`));
+        return;
+      }
+      resolveResult(blob);
+    }, 150);
+  };
+  rec.onerror = (e) => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    closeMicrophone();
+    rejectResult((e as unknown as { error?: Error }).error ?? new Error("Recording failed"));
+  };
+
+  track?.addEventListener("mute", onCut);
+  track?.addEventListener("ended", onCut);
+  rec.start(250);
+  limit = window.setTimeout(stop, opts.maxSeconds * 1000);
 
   return {
     stop,
     cancel: () => {
       cancelled = true;
-      if (rec.state === "inactive") release();
-      else rec.stop();
+      stop();
     },
     result,
-    diagnostics: () =>
-      [
-        `${chunks.length} slices`,
-        `${(((stoppedAt || performance.now()) - startedAt) / 1000).toFixed(1)} s`,
-        trackFacts(),
-        `meter ${ctx ? ctx.state : "none"}${meterWorks ? " heard" : " silent"}`,
-        rec.mimeType || mimeType || "default type",
-      ].join(" · "),
+    diagnostics,
   };
 }

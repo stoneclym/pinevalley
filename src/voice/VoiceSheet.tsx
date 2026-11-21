@@ -1,21 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import type { VoiceConfig } from "../config";
 import { CATEGORIES } from "../lib/categorize";
-import { createStore, useStore } from "../lib/store";
 import { useExit } from "../lib/useExit";
 import { type Item, parseAudio, parseGroceries, voiceConfigured } from "./parse";
 import { type Recorder, startRecording } from "./recorder";
+import { Keyboard } from "../ui/icons";
 import "./VoiceSheet.css";
 
-/** Live microphone level, written by the recorder about 30 times a second. */
-export const levelStore = createStore(0);
-
 export function beginRecording(cfg: VoiceConfig | null): Promise<Recorder> {
-  return startRecording({
-    maxSeconds: cfg?.maxSeconds ?? 30,
-    silenceStopSeconds: cfg?.silenceStopSeconds ?? 2,
-    onLevel: levelStore.set,
-  });
+  return startRecording({ maxSeconds: cfg?.maxSeconds ?? 30 });
 }
 
 export type SheetInput = { kind: "voice"; recorder: Promise<Recorder> } | { kind: "text"; text: string };
@@ -24,22 +18,22 @@ type State =
   | { s: "listening" }
   | { s: "working"; label: string }
   | { s: "review"; transcript: string; items: Item[] }
+  | { s: "typing" }
   | { s: "error"; title: string; detail?: string; reason?: string; canRetry: boolean };
 
 const BARS = 13;
 
+/**
+ * A decorative waveform: it moves while listening to show the app is alive, but it doesn't
+ * read the microphone, so it can't disturb recording on iOS. While transcribing it settles
+ * into a soft pulse.
+ */
 function Waveform({ live }: { live: boolean }) {
-  const level = useStore(levelStore);
-  const history = useRef<number[]>(Array(BARS).fill(0));
-  if (live) history.current = [...history.current.slice(1), level];
   return (
-    <div className={`wave ${live ? "" : "wave-pulse"}`} aria-hidden="true">
-      {history.current.map((l, i) => {
-        // Mirror the history so the shape reads as a centred waveform, like the design.
-        const v = live ? Math.max(l, history.current[BARS - 1 - i]) : 0.35 + 0.25 * Math.sin(i * 1.3);
-        const h = 10 + Math.round(Math.min(1, v * 1.6) * 42);
-        return <span key={i} style={{ height: h, opacity: 0.45 + 0.5 * (h / 52), animationDelay: `${i * 60}ms` }} />;
-      })}
+    <div className={`wave ${live ? "wave-live" : "wave-pulse"}`} aria-hidden="true">
+      {Array.from({ length: BARS }, (_, i) => (
+        <span key={i} style={{ animationDelay: `${(i * 97) % 700}ms`, animationDuration: `${620 + ((i * 131) % 420)}ms` }} />
+      ))}
     </div>
   );
 }
@@ -64,13 +58,12 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
         const clip = await r.result;
         recorder.current = null;
         if (!clip || !alive.current) return; // cancelled
-        if (!clip.size) throw new Error(`empty recording · ${r.diagnostics()}`);
         setState({ s: "working", label: "Transcribing" });
         if (!voiceConfigured(cfg)) {
           setState({
             s: "error",
             title: "Voice isn’t set up yet",
-            detail: `The microphone worked (${Math.round(clip.size / 1024)} KB recorded). Sorting spoken lists needs the parse-groceries function. Type items in the bar for now.`,
+            detail: `The microphone worked (${Math.round(clip.size / 1024)} KB recorded). Sorting spoken lists needs the parse-groceries function. Type your items for now.`,
             canRetry: false,
           });
           return;
@@ -87,7 +80,9 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
         // Show the real reason in small print, so a failure on the iPad can be diagnosed.
         const reason = e?.name && e.name !== "Error" ? `${e.name}: ${e.message ?? ""}` : (e?.message ?? String(err));
         setState(
-          e?.name === "NotAllowedError"
+          e?.name === "MicCutError"
+            ? { s: "error", title: "The microphone stopped", detail: "iOS cut the microphone off. Try again, or type your items instead.", reason, canRetry: true }
+            : e?.name === "NotAllowedError"
             ? { s: "error", title: "Microphone is off", detail: "Allow the microphone for this app, then try again.", reason, canRetry: true }
             : e?.name === "NotFoundError" || e?.name === "NotReadableError" || e?.name === "AbortError"
               ? { s: "error", title: "The microphone didn’t start", detail: "Close the app completely and open it again. If that doesn’t help, restart the iPad.", reason, canRetry: true }
@@ -117,6 +112,29 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
   const cancel = () => {
     recorder.current?.cancel();
     leave(onClose);
+  };
+
+  // Keyboard backup. The field is focused inside the tap, so iPadOS shows the keyboard.
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [typed, setTyped] = useState("");
+  const startTyping = () => {
+    recorder.current?.cancel();
+    recorder.current = null;
+    flushSync(() => setState({ s: "typing" }));
+    inputRef.current?.focus();
+  };
+  const submitTyped = (e?: FormEvent) => {
+    e?.preventDefault();
+    const text = typed.trim();
+    if (!text) return;
+    inputRef.current?.blur();
+    setState({ s: "working", label: "Sorting" });
+    parseGroceries(text, cfg).then((items) => {
+      if (!alive.current) return;
+      setState(items.length
+        ? { s: "review", transcript: text, items }
+        : { s: "error", title: "Couldn\u2019t find any items", detail: "Try naming them, like \u201Cmilk, eggs, bread\u201D.", canRetry: true });
+    });
   };
 
   const add = async (items: Item[]) => {
@@ -166,16 +184,34 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
               <Waveform live={state.s === "listening"} />
               <span className="sheet-label">{state.s === "listening" ? "Listening" : state.label}</span>
             </div>
-            {/* Cancel on the left, Done (stop listening) on the right. */}
+            {/* Cancel on the left; Type instead and Done (stop listening) on the right. */}
             <div className="sheet-actions">
               <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
               {state.s === "listening" ? (
-                <button type="button" className="white-glass pill pill-primary" onClick={() => recorder.current?.stop()}>
-                  Done
-                </button>
+                <div className="sheet-buttons">
+                  <button type="button" className="glass pill pill-icon" onClick={startTyping} aria-label="Type instead">
+                    <Keyboard size={24} /> Type
+                  </button>
+                  <button type="button" className="white-glass pill pill-primary" onClick={() => recorder.current?.stop()}>
+                    Done
+                  </button>
+                </div>
               ) : <span />}
             </div>
           </>
+        )}
+
+        {state.s === "typing" && (
+          <form onSubmit={submitTyped} className="sheet-typing">
+            <p className="sheet-transcript">What should we add?</p>
+            <input ref={inputRef} className="sheet-input" type="text" value={typed} onChange={(e) => setTyped(e.target.value)}
+              placeholder="milk, eggs and stuff for tacos" enterKeyHint="done" autoComplete="off" autoCorrect="on"
+              autoCapitalize="sentences" spellCheck={false} aria-label="Items to add" />
+            <div className="sheet-actions">
+              <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
+              <button type="submit" className="white-glass pill pill-primary" disabled={!typed.trim()}>Sort Items</button>
+            </div>
+          </form>
         )}
 
         {state.s === "review" && (
@@ -220,11 +256,16 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
             </div>
             <div className="sheet-actions">
               <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
-              {state.canRetry ? (
-                <button type="button" className="white-glass pill pill-primary" onClick={() => listen(beginRecording(cfg))}>
-                  Try again
+              <div className="sheet-buttons">
+                <button type="button" className="glass pill pill-icon" onClick={startTyping}>
+                  <Keyboard size={24} /> Type instead
                 </button>
-              ) : <span />}
+                {state.canRetry && (
+                  <button type="button" className="white-glass pill pill-primary" onClick={() => listen(beginRecording(cfg))}>
+                    Try again
+                  </button>
+                )}
+              </div>
             </div>
           </>
         )}

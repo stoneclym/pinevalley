@@ -46,6 +46,9 @@ export const Sparkle = (p: P) => (
 export const Mic = (p: P) => (
   <Svg {...p}><rect x="9" y="3.5" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5" /></Svg>
 );
+export const Keyboard = (p: P) => (
+  <Svg {...p}><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><path d="M6 9.5h.01M9 9.5h.01M12 9.5h.01M15 9.5h.01M18 9.5h.01M6 12.5h.01M9 12.5h.01M12 12.5h.01M15 12.5h.01M18 12.5h.01M8 15.5h8" /></Svg>
+);
 export const Stop = (p: P) => <Svg {...p}><rect x="7" y="7" width="10" height="10" rx="2.5" /></Svg>;
 export const ChevronLeft = (p: P) => <Svg strokeWidth={2} {...p}><path d="M14.5 5.5L8 12l6.5 6.5" /></Svg>;
 export const ChevronRight = (p: P) => <Svg strokeWidth={2.2} {...p}><path d="M9.5 5.5L16 12l-6.5 6.5" /></Svg>;
