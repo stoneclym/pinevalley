@@ -19,26 +19,46 @@ const cardHeight = (rows: number) => 64 + rows * 60;
 /**
  * Split cards into two balanced columns, reading down the left column and then the right,
  * in category order, the way the design lays them out. Completed always ends the right column.
- * Plain flex columns instead of CSS multi-column: iPad Safari draws blurred cards inside
- * multi-column layout glitchily and sometimes not at all.
+ *
+ * Columns are sticky: once a card has a column it keeps it while the screen is open, so
+ * checking items off never makes a card jump sideways. Only new cards are placed (in the
+ * shorter column). Plain flex columns, not CSS multi-column, because iPad Safari draws
+ * blurred cards inside multi-column layout glitchily.
  */
-function splitColumns<T extends { item: { rows: unknown[] } }>(groups: T[], completedRows: number): [T[], T[]] {
+function splitColumns<T extends { key: string; item: { rows: unknown[] } }>(
+  groups: T[],
+  completedRows: number,
+  sticky: Map<string, 0 | 1>,
+): [T[], T[]] {
   const heights = groups.map((g) => cardHeight(g.item.rows.length) + GAP);
-  const completed = completedRows ? 40 + completedRows * 60 : 0;
-  const half = (heights.reduce((a, h) => a + h, 0) + completed) / 2;
-  const left: T[] = [];
-  const right: T[] = [];
-  let used = 0;
+  const cols: [T[], T[]] = [[], []];
+  if (sticky.size === 0) {
+    // First layout: balance by height in reading order.
+    const completed = completedRows ? 40 + completedRows * 60 : 0;
+    const half = (heights.reduce((a, h) => a + h, 0) + completed) / 2;
+    let used = 0;
+    let right = false;
+    groups.forEach((g, i) => {
+      if (!right && (i === 0 || used + heights[i] / 2 <= half)) {
+        used += heights[i];
+        sticky.set(g.key, 0);
+      } else {
+        right = true;
+        sticky.set(g.key, 1);
+      }
+    });
+  }
+  const height = [0, completedRows ? 40 + completedRows * 60 : 0];
   groups.forEach((g, i) => {
-    // Stay in the left column while this card's middle still falls in the first half.
-    if (right.length === 0 && (left.length === 0 || used + heights[i] / 2 <= half)) {
-      left.push(g);
-      used += heights[i];
-    } else {
-      right.push(g);
+    let col = sticky.get(g.key);
+    if (col === undefined) {
+      col = height[0] <= height[1] ? 0 : 1;
+      sticky.set(g.key, col);
     }
+    cols[col].push(g);
+    height[col] += heights[i];
   });
-  return [left, right];
+  return cols;
 }
 
 /** Rows animate in when added and slide out when checked off or removed. */
@@ -76,6 +96,7 @@ export function Groceries({ config, go, onSheetChange }: {
   useEffect(() => onSheetChange(sheet !== null), [sheet, onSheetChange]);
 
   const columnsRef = useRef<HTMLDivElement>(null);
+  const columnOf = useRef(new Map<string, 0 | 1>());
   // Rows already on screen when the list first loads don't animate in.
   const seen = useRef<Set<string> | null>(null);
   if (!seen.current && loaded) seen.current = new Set(items.map((i) => `${i.uid}:${i.status}`));
@@ -110,7 +131,7 @@ export function Groceries({ config, go, onSheetChange }: {
       <div className="g-scroll">
         {loaded && !items.length && COPY.emptyList && <p className="quiet g-empty">{COPY.emptyList}</p>}
         <div className="g-columns" ref={columnsRef}>
-          {splitColumns(cards, done.length).map((col, ci) => (
+          {splitColumns(cards, done.length, columnOf.current).map((col, ci) => (
             <div key={ci} className="g-col">
               {col.map(({ item: { c, rows }, leaving }) => (
                 <section key={c} data-flip={`card:${c}`} className={`glass g-card ${leaving ? "g-card-leaving" : ""}`}>

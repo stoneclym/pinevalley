@@ -18,7 +18,9 @@ export function usePresence<T>(items: T[], key: (t: T) => string, ms = 280): Pre
 
   const current = new Set(items.map(key));
   prev.current.forEach((p, index) => {
-    if (!current.has(p.key) && !leaving.current.has(p.key)) {
+    // Only items that were showing normally start leaving. An item that already finished
+    // its exit (still in `prev` as leaving) must not start over, or it would loop forever.
+    if (!current.has(p.key) && !p.leaving && !leaving.current.has(p.key)) {
       leaving.current.set(p.key, { item: p.item, index });
       window.setTimeout(() => {
         leaving.current.delete(p.key);
@@ -54,12 +56,13 @@ export function useFlip(container: RefObject<HTMLElement | null>) {
       next.set(id, pos);
       const old = last.current.get(id);
       if (!old || reducedMotion()) return;
-      const dx = old.x - pos.x;
+      // Vertical moves only (cards sliding up or down within a column), with a plain
+      // ease-out: no sideways motion and no overshoot, so nothing wobbles into place.
       const dy = old.y - pos.y;
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      if (Math.abs(dy) < 1 || Math.abs(old.x - pos.x) > 1) return;
       el.animate(
-        [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "translate(0, 0)" }],
-        { duration: 420, easing: SPRING },
+        [{ transform: `translateY(${dy}px)` }, { transform: "translateY(0)" }],
+        { duration: 300, easing: "cubic-bezier(.2, .8, .2, 1)" },
       );
     });
     last.current = next;

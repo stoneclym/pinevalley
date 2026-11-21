@@ -11,35 +11,34 @@ import { formatClock, formatShortDate, formatTime } from "../lib/time";
 import { useNow } from "../lib/useNow";
 import { useEntities } from "../ha/entities";
 import { GarageTile } from "../ui/GarageTile";
-import { type CelebrationKind, celebrate } from "../ui/Celebration";
-import { Cart, Check, ChevronRight, SceneIcon, SunriseRising, WeatherIcon } from "../ui/icons";
+import { showBanner } from "../ui/Banner";
+import { Cart, ChevronRight, Moon, SceneIcon, SunriseRising, WeatherIcon } from "../ui/icons";
 import { Screen } from "./Screen";
 import "./Home.css";
 
 const MAX_TIMED = 4;
 const MAX_ALL_DAY = 2;
 
-type TileState = "idle" | "starting" | "running" | "done" | "error";
+type TileState = "idle" | "starting" | "running" | "error";
 
-/** The signature moment for a scene, from its icon: sunrise is Morning, moon is Good Night. */
-function sceneKind(scene: SceneConfig): { kind: CelebrationKind | null; greeting: string } {
-  if (scene.icon === "sunrise") return { kind: "morning", greeting: "Good morning" };
-  if (scene.icon === "moon") return { kind: "night", greeting: "Good night" };
-  return { kind: null, greeting: "Done" };
+/** Each scene's moment, from its icon: sunrise is Morning, moon is Good Night. */
+function sceneKind(scene: SceneConfig): { kind: "morning" | "night" | null; greeting: string } {
+  if (scene.icon === "sunrise") return { kind: "morning", greeting: "Good Morning!" };
+  if (scene.icon === "moon") return { kind: "night", greeting: "Good Night!" };
+  return { kind: null, greeting: `${scene.label} done` };
 }
 
 /**
- * Scene tile. A tap runs the script; once Home Assistant accepts it, the signature moment
- * plays (sunrise glow, or dusk and stars), the tile pulses gently while the script runs, and
- * only when Home Assistant reports it finished does it say "Good morning" with a check.
- * A failure shows "Couldn't finish" with a small nod, without the celebration.
+ * Scene tile. Everything stays inside the tile: while the script runs, Morning's sun rises
+ * and turns gold, Good Night's moon turns purple, and the icon breathes gently. When Home
+ * Assistant reports the script finished, the icon returns to normal and a glass banner drops
+ * from the top ("Good Morning!"). A failure shows "Couldn't finish" with a small nod.
  */
 function SceneTile({ scene }: { scene: SceneConfig }) {
   const states = useEntities();
   // Not in Home Assistant yet: a quiet, inactive tile instead of an error on tap.
   const missing = states !== null && !states[scene.entity_id];
   const [state, setState] = useState<TileState>("idle");
-  const ref = useRef<HTMLButtonElement>(null);
   const timer = useRef<number>(undefined);
   const { kind, greeting } = sceneKind(scene);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -57,12 +56,9 @@ function SceneTile({ scene }: { scene: SceneConfig }) {
     try {
       const run = await startScene(scene.entity_id);
       setState("running");
-      if (kind && ref.current) {
-        const r = ref.current.getBoundingClientRect();
-        celebrate(kind, r.left + r.width / 2, r.top + r.height / 2);
-      }
       await run.finished;
-      settle("done", 2600);
+      setState("idle");
+      showBanner(greeting, kind === "night" ? <Moon size={24} /> : kind === "morning" ? <SunriseRising size={24} /> : undefined);
     } catch (err) {
       console.error(`Scene ${scene.entity_id} failed`, err);
       settle("error", 2600);
@@ -70,14 +66,11 @@ function SceneTile({ scene }: { scene: SceneConfig }) {
   };
 
   const busy = state === "starting" || state === "running";
-  const label = missing ? scene.label : state === "done" ? greeting : state === "error" ? "Couldn\u2019t finish" : scene.label;
-  const icon =
-    state === "done" ? <Check size={32} strokeWidth={2} /> :
-    kind === "morning" ? <SunriseRising size={32} /> :
-    <SceneIcon name={scene.icon} size={32} />;
+  const label = !missing && state === "error" ? "Couldn\u2019t finish" : scene.label;
+  const icon = kind === "morning" ? <SunriseRising size={32} /> : <SceneIcon name={scene.icon} size={32} />;
 
   return (
-    <button ref={ref} type="button" onClick={press} disabled={missing || busy}
+    <button type="button" onClick={press} disabled={missing || busy}
       className={`glass tile scene-tile scene-${kind ?? "other"} tile-${state} ${missing ? "tile-missing" : ""}`}
       aria-label={missing ? `${scene.label}, not set up` : busy ? `${scene.label}, running` : label}>
       <span className="tile-icon">{icon}</span>
@@ -89,12 +82,9 @@ function SceneTile({ scene }: { scene: SceneConfig }) {
   );
 }
 
-/** `morph` names the element for the view transition into (or back from) its screen. */
-const morphStyle = (on?: boolean) => (on ? { viewTransitionName: "hero" } : undefined);
-
-function GroceriesTile({ count, onOpen, morph }: { count: number; onOpen: () => void; morph?: boolean }) {
+function GroceriesTile({ count, onOpen }: { count: number; onOpen: () => void }) {
   return (
-    <button type="button" className="glass tile" onClick={onOpen} style={morphStyle(morph)}
+    <button type="button" className="glass tile" onClick={onOpen}
       aria-label={count ? `Grocery list, ${count} ${count === 1 ? "item" : "items"}` : "Grocery list"}>
       <span className="tile-top">
         <span className="tile-icon"><Cart size={32} /></span>
@@ -105,7 +95,7 @@ function GroceriesTile({ count, onOpen, morph }: { count: number; onOpen: () => 
   );
 }
 
-function TodayPanel({ config, now, onOpen, morph }: { config: HubConfig; now: Date; onOpen: () => void; morph?: boolean }) {
+function TodayPanel({ config, now, onOpen }: { config: HubConfig; now: Date; onOpen: () => void }) {
   const { events, loaded } = useCalendar(config.calendars);
   const view = todayView(events, now);
   const allDay = view.allDay.slice(0, MAX_ALL_DAY);
@@ -114,7 +104,7 @@ function TodayPanel({ config, now, onOpen, morph }: { config: HubConfig; now: Da
   const empty = loaded && !view.allDay.length && !view.timed.length;
 
   return (
-    <button type="button" className="today" onClick={onOpen} aria-label="Today, open calendar" style={morphStyle(morph)}>
+    <button type="button" className="today" onClick={onOpen} aria-label="Today, open calendar">
       <span className="today-head">
         <span className="today-title">Today</span>
         <span className="today-link">Calendar<ChevronRight size={18} /></span>
@@ -152,7 +142,7 @@ function TodayPanel({ config, now, onOpen, morph }: { config: HubConfig; now: Da
   );
 }
 
-export function Home({ config, go, hero }: { config: HubConfig; go: (s: ScreenName) => void; hero?: string | null }) {
+export function Home({ config, go }: { config: HubConfig; go: (s: ScreenName) => void }) {
   const now = useNow();
   const weather = useWeather(config.weather);
   const { items } = useTodo(config.groceryList);
@@ -175,10 +165,10 @@ export function Home({ config, go, hero }: { config: HubConfig; go: (s: ScreenNa
           <div className="tiles">
             {config.scenes.map((s) => <SceneTile key={s.id} scene={s} />)}
             {config.statusTiles.map((t) => <GarageTile key={t.id} tile={t} />)}
-            <GroceriesTile count={unchecked} onOpen={() => go("groceries")} morph={hero === "groceries"} />
+            <GroceriesTile count={unchecked} onOpen={() => go("groceries")} />
           </div>
         </div>
-        <TodayPanel config={config} now={now} onOpen={() => go("calendar")} morph={hero === "calendar"} />
+        <TodayPanel config={config} now={now} onOpen={() => go("calendar")} />
       </div>
     </Screen>
   );

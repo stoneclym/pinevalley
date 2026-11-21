@@ -1,0 +1,29 @@
+/* Liquid glass notification that drops from the top of the screen and retreats. */
+.banner {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  top: max(18px, calc(env(safe-area-inset-top, 0px) + 8px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 26px 0 20px;
+  border-radius: 28px;
+  background: rgba(255, 252, 246, .62);
+  font: 600 20px/1 var(--font-sans);
+  color: var(--ink);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: banner-in 460ms cubic-bezier(.2, 1.2, .35, 1) both;
+}
+.banner-icon { display: flex; }
+.banner-leaving { animation: banner-out 320ms cubic-bezier(.4, 0, 1, 1) forwards; }
+@keyframes banner-in { from { transform: translate(-50%, -140%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes banner-out { to { transform: translate(-50%, -140%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .banner { animation: banner-fade 200ms ease both; }
+  .banner-leaving { animation: banner-fade-out 200ms ease forwards; }
+}
+@keyframes banner-fade { from { opacity: 0; } }
+@keyframes banner-fade-out { to { opacity: 0; } }

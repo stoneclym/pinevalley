@@ -58,12 +58,12 @@
 
 /* Rows animate in when added and slide out (collapsing) when checked off or removed;
    cards fade out when they empty. Other cards then reflow with a spring (FLIP, motion.ts). */
-.g-row-new { animation: row-in 340ms cubic-bezier(.22, 1.2, .36, 1) both; }
+.g-row-new { animation: row-in 260ms cubic-bezier(.2, .8, .2, 1) both; }
 .g-row-leaving { animation: row-out 280ms cubic-bezier(.4, 0, .2, 1) forwards; pointer-events: none; }
 .g-card-leaving { animation: card-out 280ms cubic-bezier(.4, 0, .2, 1) forwards; pointer-events: none; }
-@keyframes row-in { from { opacity: 0; height: 0; transform: translateY(-8px) scale(.96); } to { height: 60px; } }
-@keyframes row-out { to { opacity: 0; height: 0; transform: translateX(36px); } }
-@keyframes card-out { to { opacity: 0; transform: scale(.94); } }
+@keyframes row-in { from { opacity: 0; height: 0; } to { opacity: 1; height: 60px; } }
+@keyframes row-out { to { opacity: 0; height: 0; transform: translateX(24px); } }
+@keyframes card-out { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .g-row-new { animation: fade-in 160ms ease both; }
   .g-row-leaving, .g-card-leaving { animation: fade-out 140ms ease forwards; }

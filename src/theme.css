@@ -156,14 +156,13 @@ button:disabled { cursor: default; }
 
 /* Soft Apple-like screen transitions */
 .screen-transition { position: fixed; inset: 0; }
-.to-detail { animation: enter-detail 320ms cubic-bezier(.2,.8,.2,1) both; }
-.to-home { animation: enter-home 320ms cubic-bezier(.2,.8,.2,1) both; }
-@keyframes enter-detail { from { opacity: 0; transform: scale(1.025); } to { opacity: 1; transform: none; } }
-@keyframes enter-home { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
-/* Tile-to-screen morph (View Transitions API): springy and quick. */
-::view-transition-group(hero) { animation-duration: 440ms; animation-timing-function: cubic-bezier(.22, 1.15, .32, 1); }
-::view-transition-old(hero), ::view-transition-new(hero) { animation-duration: 260ms; animation-timing-function: ease; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 260ms; }
+/* Screen changes: the new screen zooms out of the tapped tile; Home settles back toward it.
+   Plain ease-out, no overshoot, so nothing wobbles while it lands. */
+.screen-transition { transform-origin: var(--ox, 50%) var(--oy, 50%); }
+.to-detail { animation: enter-detail 340ms cubic-bezier(.16, 1, .3, 1) both; }
+.to-home { animation: enter-home 300ms cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes enter-detail { from { opacity: 0; transform: scale(.88); } to { opacity: 1; transform: none; } }
+@keyframes enter-home { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   .to-detail, .to-home { animation: fade-screen 180ms ease both; }
