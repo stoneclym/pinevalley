@@ -29,24 +29,26 @@ export function mockEntities(cfg: HubConfig): HassEntities {
   return Object.fromEntries(list.map((e) => [e.entity_id, e]));
 }
 
-/** Sample events relative to "now". */
+/** Sample events relative to "now", covering every person-color and title-stripping case. */
 export function mockEvents(now: Date) {
   const at = (dayOffset: number, h: number, m = 0) =>
     new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset, h, m);
   const day = (dayOffset: number) => at(dayOffset, 0);
   const ev = (title: string, start: Date, end: Date, allDay = false, location?: string) => ({
-    id: `${title}-${start.getTime()}`, title, start, end, allDay, location,
+    id: `${title}-${start.getTime()}`, title, start, end, allDay, location, calendarId: "calendar.family",
   });
-  const nextHour = Math.min(now.getHours() + 1, 20);
+  // Later today, spaced an hour apart from now (capped so they stay today).
+  const h = (n: number) => Math.min(now.getHours() + n, 23);
   return [
-    ev("Trash pickup", day(0), day(1), true),
-    ev("Book club", at(0, nextHour, 30), at(0, nextHour + 1, 30), false, "Northeast Library"),
-    ev("Dentist", at(0, Math.min(nextHour + 3, 21), 30), at(0, Math.min(nextHour + 4, 22), 15)),
-    ev("Family dinner", at(0, 22, 30), at(0, 23, 30)),
-    ev("Soccer game", at(1, 10), at(1, 11, 30)),
-    ev("Movie night", at(1, 19), at(1, 21)),
-    ev("Church", at(2, 9, 30), at(2, 11)),
-    ev("Piano lesson", at(3, 16), at(3, 17)),
+    ev("Greyson's birthday party", day(0), day(1), true),                                   // blue, stripped
+    ev("Greyson visiting Hannah and Vince", at(0, h(1), 0), at(0, h(1), 50)),               // blue, stripped, next
+    ev("Steve & Denise dinner", at(0, h(2), 0), at(0, h(2), 50), false, "The Fortunate Glass"), // red + pink split
+    ev("Steve: dentist", at(0, h(3), 0), at(0, h(3), 45)),                                  // red, stripped
+    ev("Dinner with Greyson", at(0, h(4), 0), at(0, h(4), 50)),                             // blue, unchanged
+    ev("Book club", at(1, 10), at(1, 11, 30), false, "Northeast Library"),                  // unmatched
+    ev("Steve", at(1, 19), at(1, 21)),                                                      // red, unchanged
+    ev("Denise's yoga", at(2, 9, 30), at(2, 10, 30)),                                       // pink, stripped
+    ev("Piano lesson", at(3, 16), at(3, 17)),                                               // unmatched
     ev("Grandma arrives", day(5), day(6), true),
     ev("Thanksgiving", day(6), day(7), true),
   ].sort((a, b) => a.start.getTime() - b.start.getTime());

@@ -32,5 +32,41 @@
       "icon": "garage",
       "entity_id": "cover.pine_valley_garage_door"
     }
-  ]
+  ],
+  "people": [
+    {
+      "name": "Steve",
+      "color": "#B4574B",
+      "keywords": [
+        "Steve"
+      ]
+    },
+    {
+      "name": "Greyson",
+      "color": "#4F6E94",
+      "keywords": [
+        "Greyson"
+      ]
+    },
+    {
+      "name": "Denise",
+      "color": "#C47A90",
+      "keywords": [
+        "Denise"
+      ]
+    }
+  ],
+  "pickup": {
+    "trash": {
+      "weekday": "friday",
+      "everyWeeks": 1
+    },
+    "recycling": {
+      "weekday": "friday",
+      "everyWeeks": 2,
+      "anchor": "2026-11-27"
+    },
+    "remindDayBefore": true,
+    "overrides": []
+  }
 }

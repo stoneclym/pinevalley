@@ -6,6 +6,7 @@ import { type CalEvent, todayView, weekView } from "../lib/events";
 import { formatLongDate, formatShortDate, formatTime, shortWeekday } from "../lib/time";
 import { useNow } from "../lib/useNow";
 import { BackHeader } from "../ui/BackHeader";
+import { barFill, PersonDots, personInfo } from "../ui/PersonMarks";
 import { Screen } from "./Screen";
 import "./Calendar.css";
 
@@ -31,20 +32,25 @@ export function Calendar({ config, go }: { config: HubConfig; go: (s: ScreenName
             <span>{formatLongDate(now)}</span>
           </div>
           <div className="cal-scroll">
-            {today.allDay.map((e) => (
-              <div key={e.id} className="cal-allday">
-                <span className="caps">All day</span>
-                <span className="cal-allday-title">{e.title}</span>
-              </div>
-            ))}
+            {today.allDay.map((e) => {
+              const p = personInfo(e, config.people);
+              return (
+                <div key={e.id} className="cal-allday">
+                  <span className="caps">All day</span>
+                  <PersonDots colors={p.colors} />
+                  <span className="cal-allday-title">{p.title}</span>
+                </div>
+              );
+            })}
             <div className="cal-events">
               {today.timed.map((e) => {
                 const isNext = e === today.next;
+                const p = personInfo(e, config.people);
                 return (
                   <div key={e.id} className={`cal-event ${isNext ? "white-glass cal-event-next" : ""}`}>
-                    <span className="cal-bar" />
+                    <span className="cal-bar" style={barFill(p.colors)} />
                     <span className="cal-event-text">
-                      <span className="cal-event-title">{e.title}</span>
+                      <span className="cal-event-title">{p.title}</span>
                       <span className="cal-event-meta">
                         {timeRange(e)}
                         {e.location ? ` · ${e.location}` : ""}
@@ -69,12 +75,16 @@ export function Calendar({ config, go }: { config: HubConfig; go: (s: ScreenName
                   <span className="cal-day-num">{d.date.getDate()}</span>
                 </span>
                 <span className="cal-day-events">
-                  {d.allDay.map((e) => (
-                    <span key={e.id} className="cal-line"><span className="cal-line-time">All day</span>{e.title}</span>
-                  ))}
-                  {d.timed.map((e) => (
-                    <span key={e.id} className="cal-line"><span className="cal-line-time">{formatTime(e.start)}</span>{e.title}</span>
-                  ))}
+                  {[...d.allDay, ...d.timed].map((e) => {
+                    const p = personInfo(e, config.people);
+                    return (
+                      <span key={e.id} className="cal-line">
+                        <span className="cal-line-time">{e.allDay ? "All day" : formatTime(e.start)}</span>
+                        <PersonDots colors={p.colors} />
+                        <span className="cal-line-title">{p.title}</span>
+                      </span>
+                    );
+                  })}
                 </span>
               </div>
             ))}

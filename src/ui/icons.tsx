@@ -46,6 +46,16 @@ export const Sparkle = (p: P) => (
 export const Mic = (p: P) => (
   <Svg {...p}><rect x="9" y="3.5" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5" /></Svg>
 );
+export const Trash = (p: P) => (
+  <Svg {...p}><path d="M4 7h16" /><path d="M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" /><path d="M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7" /><path d="M10 11v6M14 11v6" /></Svg>
+);
+export const Recycle = (p: P) => (
+  <Svg {...p}>
+    <path d="M7.2 19.5H5.1a1.6 1.6 0 0 1-1.4-2.4l1.9-3.3" /><path d="M11 19.5h7.9a1.6 1.6 0 0 0 1.4-2.4l-1.2-2.1" />
+    <path d="M8.7 16.8 11 19.5l-2.3 2.6" /><path d="m14 4.2-1.3-.8a1.6 1.6 0 0 0-2.2.6L6.6 10.6" />
+    <path d="m16.8 9.6 1.4 2.4" /><path d="M13.9 1.7 14 4.2l-2.6.9" /><path d="m3.6 8.6 3 2 2-2.9" />
+  </Svg>
+);
 export const Keyboard = (p: P) => (
   <Svg {...p}><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><path d="M6 9.5h.01M9 9.5h.01M12 9.5h.01M15 9.5h.01M18 9.5h.01M6 12.5h.01M9 12.5h.01M12 12.5h.01M15 12.5h.01M18 12.5h.01M8 15.5h8" /></Svg>
 );

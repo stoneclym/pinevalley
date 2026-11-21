@@ -78,6 +78,15 @@ export function Setup({ config }: { config: HubConfig }) {
           );
         })}
         <section className="setup-card glass">
+          <h2>People</h2>
+          <div className="setup-people">
+            {config.people.map((p) => (
+              <span key={p.name}><i style={{ background: p.color }} /><b>{p.name}</b><small>{p.color}</small></span>
+            ))}
+            {config.people.length === 0 && <p className="setup-empty">None in config.json</p>}
+          </div>
+        </section>
+        <section className="setup-card glass">
           <h2>Weather icons</h2>
           <div className="setup-weather">
             {WEATHER_CONDITIONS.map((c) => (

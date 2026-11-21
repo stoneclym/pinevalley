@@ -6,6 +6,11 @@ export type SceneConfig = {
 };
 
 /** A read-only status tile, e.g. the garage door. Shows state; tapping does nothing. */
+export type { Person } from "./lib/people";
+export type { PickupConfig } from "./lib/pickup";
+import type { Person } from "./lib/people";
+import type { PickupConfig } from "./lib/pickup";
+
 export type StatusTileConfig = {
   id: string;
   label: string;
@@ -34,6 +39,10 @@ export type HubConfig = {
   voice: VoiceConfig | null;
   scenes: SceneConfig[];
   statusTiles: StatusTileConfig[];
+  /** Color-codes events by person (dot and accent line). */
+  people: Person[];
+  /** Trash and recycling days for the reminder on the Today panel. */
+  pickup: PickupConfig | null;
 };
 
 const DEFAULTS: HubConfig = {
@@ -45,6 +54,8 @@ const DEFAULTS: HubConfig = {
   voice: null,
   scenes: [],
   statusTiles: [],
+  people: [],
+  pickup: null,
 };
 
 let current: HubConfig = DEFAULTS;

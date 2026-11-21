@@ -12,7 +12,10 @@ import { useNow } from "../lib/useNow";
 import { useEntities } from "../ha/entities";
 import { GarageTile } from "../ui/GarageTile";
 import { showBanner } from "../ui/Banner";
-import { Cart, ChevronRight, Moon, SceneIcon, SunriseRising, WeatherIcon } from "../ui/icons";
+import { PersonDots, personInfo, TimelineDot } from "../ui/PersonMarks";
+import { MOCK } from "../ha/connection";
+import { type PickupKind, reminderFor, todayInNewYork } from "../lib/pickup";
+import { Cart, ChevronRight, Moon, Recycle, SceneIcon, SunriseRising, Trash, WeatherIcon } from "../ui/icons";
 import { Screen } from "./Screen";
 import "./Home.css";
 
@@ -95,13 +98,36 @@ function GroceriesTile({ count, onOpen }: { count: number; onOpen: () => void })
   );
 }
 
+/** Demo only: `?today=YYYY-MM-DD` pretends it's that date for the pickup reminder. */
+function pickupToday(now: Date): string {
+  const forced = MOCK ? new URLSearchParams(location.search).get("today") : null;
+  return forced && /^\d{4}-\d{2}-\d{2}$/.test(forced) ? forced : todayInNewYork(now);
+}
+
+/** Pinned the day before a pickup: soft bronze accent, never counted as the next event. */
+function PickupCard({ kinds }: { kinds: PickupKind[] }) {
+  const both = kinds.includes("trash") && kinds.includes("recycling");
+  const text = both ? "Trash & recycling pickup tomorrow" : kinds.includes("recycling") ? "Recycling pickup tomorrow" : "Trash pickup tomorrow";
+  return (
+    <span className="pickup-card">
+      <span className="pickup-bar" />
+      <span className="pickup-icons">
+        {kinds.includes("trash") && <Trash size={22} />}
+        {kinds.includes("recycling") && <Recycle size={22} />}
+      </span>
+      <span className="pickup-text">{text}</span>
+    </span>
+  );
+}
+
 function TodayPanel({ config, now, onOpen }: { config: HubConfig; now: Date; onOpen: () => void }) {
   const { events, loaded } = useCalendar(config.calendars);
   const view = todayView(events, now);
   const allDay = view.allDay.slice(0, MAX_ALL_DAY);
   const timed = view.timed.slice(0, MAX_TIMED);
   const more = view.allDay.length - allDay.length + view.timed.length - timed.length;
-  const empty = loaded && !view.allDay.length && !view.timed.length;
+  const pickup = reminderFor(pickupToday(now), config.pickup);
+  const empty = loaded && !view.allDay.length && !view.timed.length && !pickup.length;
 
   return (
     <button type="button" className="today" onClick={onOpen} aria-label="Today, open calendar">
@@ -110,25 +136,32 @@ function TodayPanel({ config, now, onOpen }: { config: HubConfig; now: Date; onO
         <span className="today-link">Calendar<ChevronRight size={18} /></span>
       </span>
 
-      {allDay.map((e) => (
-        <span key={e.id} className="today-allday">
-          <span className="caps-sm">All day</span>
-          <span className="today-allday-title">{e.title}</span>
-        </span>
-      ))}
+      {pickup.length > 0 && <PickupCard kinds={pickup} />}
+
+      {allDay.map((e) => {
+        const p = personInfo(e, config.people);
+        return (
+          <span key={e.id} className="today-allday">
+            <span className="caps-sm">All day</span>
+            <PersonDots colors={p.colors} />
+            <span className="today-allday-title">{p.title}</span>
+          </span>
+        );
+      })}
 
       {timed.length > 0 && (
         <span className="timeline">
           {timed.map((e) => {
             const isNext = e === view.next;
+            const p = personInfo(e, config.people);
             return (
               <span key={e.id} className={`tl-event ${isNext ? "tl-next" : ""}`}>
-                <span className={isNext ? "tl-dot-filled" : "tl-dot"} />
+                <TimelineDot colors={p.colors} next={isNext} />
                 <span className="tl-time">
                   {formatTime(e.start)}
                   {isNext && <span className="caps-sm tl-next-label">Next</span>}
                 </span>
-                <span className="tl-title">{e.title}</span>
+                <span className="tl-title">{p.title}</span>
                 {e.location && <span className="tl-location">{e.location}</span>}
               </span>
             );

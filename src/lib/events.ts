@@ -8,6 +8,8 @@ export type CalEvent = {
   end: Date;
   allDay: boolean;
   location?: string;
+  /** The calendar entity it came from (for per-person calendars). */
+  calendarId?: string;
 };
 
 /** HA returns plain strings from calendar.get_events, and {date}/{dateTime} from REST. Accept all. */
@@ -46,6 +48,7 @@ export function normalizeEvents(byCalendar: Record<string, { events?: RawEvent[]
         end: en.date,
         allDay: s.allDay,
         location: e.location?.trim() || undefined,
+        calendarId,
       });
     });
   }

@@ -34,6 +34,15 @@ to Home Assistant.
 | 6 Voice | Shelved. Typed (or dictated) lists are sorted by `parse-groceries` when configured, local rules otherwise | Local rules |
 | 7 Scenes, garage | `script.turn_on` / `scene.turn_on`; garage state pushed by `subscribe_entities`, commands via `cover.open_cover` / `cover.close_cover` | Scene tiles fake success; the garage fakes Sending, Opening, then Open |
 
+## People colors and pickup reminder
+
+- `config.json` `people`: name, color, keywords, optional `calendar`. Keywords match whole words,
+  case-insensitive; a calendar mapping wins. Colors: Steve #B4574B, Greyson #4F6E94, Denise #C47A90.
+  Leading names are stripped for display only ("Steve & Denise dinner" shows as "Dinner", red + pink).
+- `config.json` `pickup`: trash weekly on Friday, recycling every other Friday from 2026-11-27,
+  holiday `overrides` (move or skip). The day before, a bronze card sits at the top of Today.
+  Pure date math in America/New_York. In demo mode, `?today=YYYY-MM-DD` pretends it's that day.
+
 ## Checked here (dev machine, mock mode, 1180 × 820)
 
 - Home, Calendar, Groceries and the review sheet match the Claude Design export side by side.

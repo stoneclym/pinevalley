@@ -40,3 +40,7 @@
 .cal-line { font: 500 17px/1.25 var(--font-sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal-line-time { margin-right: 10px; }
 .cal-week-empty { margin: 14px 6px; }
+.cal-line { display: flex; align-items: center; }
+.cal-line .cal-line-time { flex: none; }
+.cal-allday .pdots { margin-right: 0; }
+.cal-line-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
