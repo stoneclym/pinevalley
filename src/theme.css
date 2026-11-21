@@ -143,8 +143,20 @@ button {
   cursor: pointer;
   text-align: left;
 }
-button:active { transform: scale(0.97); }
-button { transition: transform 160ms ease; }
+/* Press feedback for every button: it sinks in quickly, then springs back with a small
+   overshoot. Large surfaces (the Today panel, list rows, the add bar) sink in less. */
+button {
+  transition: transform 460ms cubic-bezier(.28, 1.7, .5, 1);
+  will-change: transform;
+}
+button:not(:disabled):active {
+  transform: scale(.92);
+  transition: transform 90ms cubic-bezier(.3, 0, .6, 1);
+}
+.today:not(:disabled):active,
+.g-row:not(:disabled):active,
+.addbar:not(:disabled):active { transform: scale(.975); }
+button:disabled { cursor: default; }
 
 .caps {
   font: 600 14px/1 var(--font-sans);
@@ -185,7 +197,7 @@ button { transition: transform 160ms ease; }
 @keyframes enter-home { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .to-detail, .to-home { animation: none; }
-  button:active { transform: none; }
+  button, button:active { transition: none; transform: none !important; }
 }
 
 /* The 1180 × 820 design canvas, scaled to fit and centred (scale 1 on the iPad Air).

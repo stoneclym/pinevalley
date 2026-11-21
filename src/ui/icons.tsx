@@ -39,22 +39,19 @@ export const Alert = (p: P) => (
   <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v5" /><circle cx="12" cy="16.2" r=".6" fill="currentColor" /></Svg>
 );
 
-/** Closed: a panelled door fills the opening. */
+/** Closed: a panelled door fills the doorway. */
 export const GarageClosed = (p: P) => (
   <Svg {...p}>
     <path d="M3.5 20V9.5L12 4l8.5 5.5V20" />
-    <rect x="6.5" y="11.5" width="11" height="8.5" fill="currentColor" fillOpacity=".18" />
-    <path d="M6.5 14.3h11M6.5 17.1h11" />
+    <path d="M6.5 20v-8h11v8" fill="currentColor" fillOpacity=".18" />
+    <path d="M6.5 14.7h11M6.5 17.4h11" />
   </Svg>
 );
-/** Open: the door is rolled up at the top, the opening is dark, and the car shows inside. */
+/** Open: no door at all, just the empty doorway. */
 export const GarageOpen = (p: P) => (
   <Svg {...p}>
     <path d="M3.5 20V9.5L12 4l8.5 5.5V20" />
-    <rect x="6.5" y="13.4" width="11" height="6.6" fill="currentColor" fillOpacity=".38" stroke="none" />
-    <rect x="6.5" y="11.5" width="11" height="1.9" fill="currentColor" />
-    <path d="M6.5 13.4V20M17.5 13.4V20" />
-    <path d="M8.6 19.2v-1.9l1.2-1.9h4.4l1.2 1.9v1.9z" fill="currentColor" stroke="none" />
+    <path d="M6.5 20v-8h11v8" />
   </Svg>
 );
 

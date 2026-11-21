@@ -11,7 +11,7 @@ Updated 2026-11-21. Spec: [CLAUDE.md](CLAUDE.md).
 | 2 | Home: clock, date and weather, tiles, Today panel | Done | Not yet |
 | 3 | Calendar view: Today and This week | Done | Not yet. Needs real calendar IDs |
 | 4 | Grocery list: cards, check off, Completed, Clear, badge, live updates | Done | Not yet |
-| 5 | Add by typing, local parser, preview sheet | Done | Not yet |
+| 5 | Add by typing | Removed on request: the add bar opens voice mode, and the app has no keyboard input | n/a |
 | 6 | Voice: Listening, Transcribing, Review, error states, recorder | Front end done | Needs the `parse-groceries` backend |
 | 7 | Scene tiles with confirmation and error state | Done | Not yet. Needs the HA scripts |
 | 7b | Garage tile: live state, since-time, confirm sheet, open/close via `cover.*` | Done | Not yet. `cover.pine_valley_garage_door` |
@@ -30,7 +30,7 @@ to Home Assistant.
 | 2 Home | Real clock and date. Weather, events, badge and garage state come from HA | Sample weather (48°, cloudy), events, 8 groceries, garage Closed |
 | 3 Calendar | `calendar/event/subscribe` for today plus 6 days, pushed live (falls back to `calendar.get_events` every 5 min) | Sample events relative to the current time |
 | 4 Groceries | Live `todo/item/subscribe` list; checks and Clear go to HA | Sample list; changes stay in the page |
-| 5 Typed add | Local parser (real code). Adds go to HA | Same parser; adds stay in the page |
+| 5 Typed add | Removed: the add bar opens voice mode | Same |
 | 6 Voice | Real recording. Sorting needs the `parse-groceries` function, which doesn't exist yet, so the sheet says voice isn't set up after recording | Same |
 | 7 Scenes, garage | `script.turn_on` / `scene.turn_on`; garage state pushed by `subscribe_entities`, commands via `cover.open_cover` / `cover.close_cover` | Scene tiles fake success; the garage fakes Sending, Opening, then Open |
 
@@ -57,6 +57,8 @@ to Home Assistant.
 - Home shows at most 2 all-day and 4 timed events, then `+N more`.
 - This week lists only days that have events (from "Real data only" in the spec).
 - Adding an item that is already on the list and unchecked is skipped.
+- Tiles never change color or fade. The only feedback on any button is a quick press-in that
+  springs back with a small bounce.
 - The garage tile shows the live state first. A tap only opens "Open the garage?" / "Close the garage?";
   nothing moves without the second tap. No commands while the door is moving, offline, or still
   "Sending…". An unanswered confirmation closes itself after 30 seconds.

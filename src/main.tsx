@@ -20,6 +20,8 @@ function start() {
   // Block long-press menus and pinch zoom on the wall iPad.
   document.addEventListener("contextmenu", (e) => e.preventDefault());
   document.addEventListener("gesturestart", (e) => e.preventDefault());
+  // iOS Safari only applies :active (the press-in on buttons) when a touchstart listener exists.
+  document.addEventListener("touchstart", () => {}, { passive: true });
 
   // Draw the 1180 × 820 design canvas scaled to fit the window. On the iPad Air in the
   // installed app the scale is 1; in a browser tab or on a phone it shrinks to fit.

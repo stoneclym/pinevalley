@@ -57,7 +57,7 @@ function GarageSheet({ action, onConfirm, onClose, sheet }: {
           <span />
           <div className="sheet-buttons">
             <button type="button" className="glass pill" onClick={onClose} disabled={sheet === "sending"}>Cancel</button>
-            <button type="button" className={`white-glass pill pill-primary ${action === "open" ? "pill-warm" : ""}`}
+            <button type="button" className="white-glass pill pill-primary"
               onClick={onConfirm} disabled={sheet === "sending"}>
               {sheet === "sending" ? "Sending…" : sheet === "error" ? "Try again" : verb}
             </button>
@@ -132,7 +132,7 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
   return (
     <>
       <button type="button" onClick={ask} disabled={!tappable}
-        className={`glass tile garage garage-${door.state} ${sending ? "garage-sending" : ""} ${isOpen ? "garage-open-tint" : ""}`}
+        className={`glass tile garage garage-${door.state}`}
         aria-label={`${tile.label}: ${door.state === "unavailable" && !sending ? "offline" : text || "loading"}${tappable ? `. Tap to ${door.state === "open" ? "close" : "open"}` : ""}`}>
         {/* Same layout as the Groceries tile: icon top left, state where its badge sits,
             and the label on the bottom line with the other tiles. */}

@@ -1,11 +1,10 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ScreenName } from "../App";
 import type { HubConfig } from "../config";
 import { COPY } from "../copy";
 import { addItems, clearCompleted, setStatus, type TodoItem, useTodo } from "../ha/todo";
 import { CATEGORIES } from "../lib/categorize";
 import { categoryFor } from "../lib/categoryMemory";
-import { hasSeparators, parseGroceriesLocal } from "../lib/parseGroceries";
 import { BackHeader } from "../ui/BackHeader";
 import { Check, Mic, Sparkle } from "../ui/icons";
 import { beginRecording, type SheetInput, VoiceSheet } from "../voice/VoiceSheet";
@@ -59,7 +58,6 @@ export function Groceries({ config, go, onSheetChange }: {
   onSheetChange: (open: boolean) => void;
 }) {
   const { items, loaded } = useTodo(config.groceryList);
-  const [text, setText] = useState("");
   const [sheet, setSheet] = useState<SheetInput | null>(null);
   useEffect(() => onSheetChange(sheet !== null), [sheet, onSheetChange]);
 
@@ -69,23 +67,8 @@ export function Groceries({ config, go, onSheetChange }: {
     .map((c) => ({ c, rows: open.filter((i) => categoryFor(i.summary) === c) }))
     .filter((g) => g.rows.length);
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const t = text.trim();
-    if (!t) return;
-    setText("");
-    if (hasSeparators(t)) {
-      setSheet({ kind: "text", text: t });
-    } else {
-      // A single simple item goes straight on the list.
-      const [one] = parseGroceriesLocal(t);
-      if (one) addItems([one.name]).catch((err) => console.error(err));
-    }
-  };
-
   // Started here, inside the tap, so Safari lets the audio start.
   const startVoice = () => {
-    (document.activeElement as HTMLElement | null)?.blur();
     setSheet({ kind: "voice", recorder: beginRecording(config.voice) });
   };
 
@@ -94,17 +77,14 @@ export function Groceries({ config, go, onSheetChange }: {
       <BackHeader title="Groceries" onBack={() => go("home")}
         detail={open.length ? `${open.length} ${open.length === 1 ? "item" : "items"}` : undefined} />
 
-      <form className="glass addbar" onSubmit={submit}>
+      {/* The whole bar opens voice mode. There is no text field, so the keyboard never appears. */}
+      <button type="button" className="glass addbar" onClick={startVoice} aria-label="Add items by voice">
         <Sparkle size={26} color="var(--ink-2)" />
-        <label className="addbar-field">
-          <span className="sr-only">Add items</span>
-          <input type="text" value={text} onChange={(e) => setText(e.target.value)} placeholder={COPY.addPlaceholder}
-            enterKeyHint="done" autoComplete="off" autoCorrect="on" autoCapitalize="sentences" spellCheck={false} />
-        </label>
-        <button type="button" className="white-glass addbar-mic" aria-label="Speak items" onClick={startVoice}>
+        <span className="addbar-text">{COPY.addPlaceholder}</span>
+        <span className="white-glass addbar-mic" aria-hidden="true">
           <Mic size={26} />
-        </button>
-      </form>
+        </span>
+      </button>
 
       <div className="g-scroll">
         {loaded && !items.length && COPY.emptyList && <p className="quiet g-empty">{COPY.emptyList}</p>}

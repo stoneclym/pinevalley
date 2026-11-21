@@ -42,12 +42,8 @@
   color: var(--ink);
 }
 .tile-top { display: flex; align-items: flex-start; justify-content: space-between; }
-.tile-icon { display: block; transition: opacity 200ms ease, transform 200ms ease; }
-.tile-running .tile-icon { animation: tile-pulse 900ms ease-in-out infinite; }
-.tile-done .tile-icon, .tile-error .tile-icon { animation: tile-pop 260ms cubic-bezier(.2,.8,.2,1); }
-@keyframes tile-pulse { 50% { opacity: .45; } }
-@keyframes tile-pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
-.tile-error { color: #8a3d17; }
+.tile-icon { display: block; }
+/* Tiles never change color or fade; the only feedback is the press (see theme.css). */
 .tile-label { font: 600 17px/1.1 var(--font-sans); white-space: nowrap; }
 .tile-badge {
   min-width: 30px;
@@ -115,5 +111,4 @@
 /* Tile with a second line (e.g. "Not set up"), in the secondary color like Apple Home. */
 .tile-text { display: flex; flex-direction: column; gap: 4px; }
 .tile-state { font: 500 15px/1.1 var(--font-sans); color: var(--ink-2); white-space: nowrap; }
-.tile-missing { opacity: .55; cursor: default; }
-.tile-missing:active { transform: none; }
+.tile-missing { cursor: default; }
