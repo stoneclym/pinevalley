@@ -8,6 +8,8 @@
  */
 import { useEffect } from "react";
 import { callService } from "home-assistant-js-websocket";
+import type { Category } from "../lib/categorize";
+import { rememberCategories } from "../lib/categoryMemory";
 import { createStore, useStore } from "../lib/store";
 import { getConnection, MOCK } from "./connection";
 
@@ -59,10 +61,17 @@ async function call(service: string, data: object) {
   await callService(conn, "todo", service, data, { entity_id: entityId });
 }
 
-export async function addItems(input: string[]): Promise<void> {
+/** Items to add: plain names, or names with the category the review sheet showed. */
+export type NewItem = string | { name: string; category: Category };
+
+export async function addItems(input: NewItem[]): Promise<void> {
+  const withCategory = input.filter((i): i is { name: string; category: Category } => typeof i !== "string");
+  rememberCategories(withCategory);
   // Skip anything already on the list and not yet checked off.
   const onList = new Set(store.get().items.filter((i) => i.status !== "completed").map((i) => i.summary.trim().toLowerCase()));
-  const names = input.filter((n) => !onList.has(n.trim().toLowerCase()));
+  const names = input
+    .map((i) => (typeof i === "string" ? i : i.name))
+    .filter((n) => !onList.has(n.trim().toLowerCase()));
   if (!names.length) return;
   if (MOCK) {
     localChange((items) => [

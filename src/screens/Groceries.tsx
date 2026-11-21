@@ -3,13 +3,43 @@ import type { ScreenName } from "../App";
 import type { HubConfig } from "../config";
 import { COPY } from "../copy";
 import { addItems, clearCompleted, setStatus, type TodoItem, useTodo } from "../ha/todo";
-import { CATEGORIES, categorize } from "../lib/categorize";
+import { CATEGORIES } from "../lib/categorize";
+import { categoryFor } from "../lib/categoryMemory";
 import { hasSeparators, parseGroceriesLocal } from "../lib/parseGroceries";
 import { BackHeader } from "../ui/BackHeader";
 import { Check, Mic, Sparkle } from "../ui/icons";
 import { beginRecording, type SheetInput, VoiceSheet } from "../voice/VoiceSheet";
 import { Screen } from "./Screen";
 import "./Groceries.css";
+
+// Card height estimate from the design: padding and title about 64px, then 60px per row.
+const GAP = 18;
+const cardHeight = (rows: number) => 64 + rows * 60;
+
+/**
+ * Split cards into two balanced columns, reading down the left column and then the right,
+ * in category order, the way the design lays them out. Completed always ends the right column.
+ * Plain flex columns instead of CSS multi-column: iPad Safari draws blurred cards inside
+ * multi-column layout glitchily and sometimes not at all.
+ */
+function splitColumns<T extends { rows: unknown[] }>(groups: T[], completedRows: number): [T[], T[]] {
+  const heights = groups.map((g) => cardHeight(g.rows.length) + GAP);
+  const completed = completedRows ? 40 + completedRows * 60 : 0;
+  const half = (heights.reduce((a, h) => a + h, 0) + completed) / 2;
+  const left: T[] = [];
+  const right: T[] = [];
+  let used = 0;
+  groups.forEach((g, i) => {
+    // Stay in the left column while this card's middle still falls in the first half.
+    if (right.length === 0 && (left.length === 0 || used + heights[i] / 2 <= half)) {
+      left.push(g);
+      used += heights[i];
+    } else {
+      right.push(g);
+    }
+  });
+  return [left, right];
+}
 
 function Row({ item }: { item: TodoItem }) {
   const done = item.status === "completed";
@@ -36,7 +66,7 @@ export function Groceries({ config, go, onSheetChange }: {
   const open = items.filter((i) => i.status !== "completed");
   const done = items.filter((i) => i.status === "completed");
   const groups = CATEGORIES
-    .map((c) => ({ c, rows: open.filter((i) => categorize(i.summary) === c) }))
+    .map((c) => ({ c, rows: open.filter((i) => categoryFor(i.summary) === c) }))
     .filter((g) => g.rows.length);
 
   const submit = (e: FormEvent) => {
@@ -79,23 +109,28 @@ export function Groceries({ config, go, onSheetChange }: {
       <div className="g-scroll">
         {loaded && !items.length && COPY.emptyList && <p className="quiet g-empty">{COPY.emptyList}</p>}
         <div className="g-columns">
-          {groups.map(({ c, rows }) => (
-            <section key={c} className="glass g-card">
-              <h2 className="caps g-card-title">{c}</h2>
-              {rows.map((i) => <Row key={i.uid} item={i} />)}
-            </section>
+          {splitColumns(groups, done.length).map((col, ci) => (
+            <div key={ci} className="g-col">
+              {col.map(({ c, rows }) => (
+                <section key={c} className="glass g-card">
+                  <h2 className="caps g-card-title">{c}</h2>
+                  {rows.map((i) => <Row key={i.uid} item={i} />)}
+                </section>
+              ))}
+              {/* Completed sits below the cards in the right column, as designed. */}
+              {ci === 1 && done.length > 0 && (
+                <section className="g-completed">
+                  <div className="g-completed-head">
+                    <h2 className="caps">Completed · {done.length}</h2>
+                    <button type="button" className="glass g-clear" onClick={() => clearCompleted().catch((e) => console.error(e))}>
+                      Clear
+                    </button>
+                  </div>
+                  {done.map((i) => <Row key={i.uid} item={i} />)}
+                </section>
+              )}
+            </div>
           ))}
-          {done.length > 0 && (
-            <section className="g-completed">
-              <div className="g-completed-head">
-                <h2 className="caps">Completed · {done.length}</h2>
-                <button type="button" className="glass g-clear" onClick={() => clearCompleted().catch((e) => console.error(e))}>
-                  Clear
-                </button>
-              </div>
-              {done.map((i) => <Row key={i.uid} item={i} />)}
-            </section>
-          )}
         </div>
       </div>
 

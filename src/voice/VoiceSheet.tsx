@@ -47,7 +47,7 @@ function Waveform({ live }: { live: boolean }) {
 export function VoiceSheet({ input, cfg, onAdd, onClose }: {
   input: SheetInput;
   cfg: VoiceConfig | null;
-  onAdd: (names: string[]) => Promise<void>;
+  onAdd: (items: Item[]) => Promise<void>;
   onClose: () => void;
 }) {
   const [state, setState] = useState<State>(input.kind === "voice" ? { s: "listening" } : { s: "working", label: "Sorting" });
@@ -117,7 +117,8 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
   const add = async (items: Item[]) => {
     setAdding(true);
     try {
-      await onAdd(items.map((i) => i.name));
+      await onAdd(items); // names with the categories shown here, so the list matches
+
       onClose();
     } catch (err) {
       console.error("add items failed", err);
@@ -164,7 +165,7 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
                   <span className="caps sheet-cat">{c}</span>
                   <div className="sheet-chips">
                     {state.items.map((it, idx) => it.category === c && (
-                      <button key={idx} type="button" className="white-glass chip" onClick={() => removeChip(idx)}
+                      <button key={idx} type="button" className="chip" onClick={() => removeChip(idx)}
                         aria-label={`Remove ${it.name}`}>
                         {it.name}
                       </button>

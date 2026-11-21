@@ -17,6 +17,9 @@
   display: flex;
   flex-direction: column;
   gap: 26px;
+  /* Own compositing layer so iPad Safari draws the blur reliably. */
+  transform: translateZ(0);
+  isolation: isolate;
   animation: sheet-in 320ms cubic-bezier(.2, .8, .2, 1) both;
 }
 @keyframes dim-in { from { opacity: 0; } }
@@ -35,7 +38,12 @@
 .sheet-group { display: flex; align-items: center; gap: 14px; }
 .sheet-cat { width: 120px; flex: none; letter-spacing: .12em; }
 .sheet-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Plain translucent white, no backdrop-filter: the chips already sit on the blurred sheet. */
 .chip {
+  background: rgba(255, 255, 255, .84);
+  border: 1px solid rgba(255, 255, 255, .9);
+  box-shadow: inset 0 1px 0 #fff, 0 10px 24px rgba(0, 0, 0, .14);
+  color: var(--ink-badge);
   height: 40px;
   border-radius: 20px;
   box-sizing: border-box;
