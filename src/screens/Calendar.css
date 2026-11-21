@@ -45,3 +45,7 @@
 .cal-allday .pdots { margin-right: 0; }
 .cal-line-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal-line-empty { color: var(--ink-2); }
+/* The 7 days share the panel's full height evenly; a busy week grows past it and scrolls. */
+.cal-week .cal-scroll { display: flex; flex-direction: column; }
+.cal-week .cal-day { flex: 1 0 auto; align-items: center; padding: 12px 6px; }
+.cal-week .cal-day-events { padding-top: 0; }
