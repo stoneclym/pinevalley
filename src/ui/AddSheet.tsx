@@ -105,7 +105,8 @@ export function AddSheet({ cfg, onAdd, onClose, inputRef }: {
   const kept = state.s === "review" ? state.items.filter((it) => !removing.has(it)) : [];
 
   return (
-    <div className={`sheet-layer ${leaving ? "sheet-leaving" : ""}`} role="presentation">
+    // While typing, the sheet sits near the top so the iPad keyboard (bottom half) never covers it.
+    <div className={`sheet-layer ${state.s === "typing" ? "sheet-top" : ""} ${leaving ? "sheet-leaving" : ""}`} role="presentation">
       <div className="sheet-dim" />
       <div className="glass sheet" role="dialog" aria-modal="true" aria-label="Add items">
         {/* The field stays mounted (hidden when not typing) so the parent can focus it during the tap. */}

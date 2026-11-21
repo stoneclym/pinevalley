@@ -20,6 +20,16 @@ function start() {
   // Block long-press menus and pinch zoom on the wall iPad.
   document.addEventListener("contextmenu", (e) => e.preventDefault());
   document.addEventListener("gesturestart", (e) => e.preventDefault());
+  // When the keyboard opens, iOS tries to scroll the page to show the field, which shifts the
+  // whole app. The layout already keeps the field visible, so always snap the page back.
+  const pinPage = () => {
+    if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+  };
+  document.addEventListener("focusin", () => requestAnimationFrame(pinPage));
+  window.addEventListener("scroll", pinPage, { passive: true });
+  window.visualViewport?.addEventListener("resize", pinPage);
+  window.visualViewport?.addEventListener("scroll", pinPage);
+
   // iOS Safari only applies :active (the press-in on buttons) when a touchstart listener exists.
   document.addEventListener("touchstart", () => {}, { passive: true });
 

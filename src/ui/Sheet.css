@@ -123,3 +123,6 @@
 @keyframes spoke { from { opacity: .95; } to { opacity: .12; } }
 @media (prefers-reduced-motion: reduce) { .spinner span { animation-duration: 2s; } }
 .sheet-typing[hidden] { display: none; }
+
+/* Sheets that use the keyboard sit near the top: the iPad keyboard covers the bottom half. */
+.sheet-layer.sheet-top { align-items: flex-start; padding-top: max(40px, calc(env(safe-area-inset-top, 0px) + 24px)); }
