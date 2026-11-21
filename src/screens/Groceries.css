@@ -14,7 +14,9 @@
 .addbar-text {
   flex: 1;
   min-width: 0;
-  font: 500 21px/1 var(--font-sans);
+  /* Taller line box so descenders (g, y, p) aren't clipped by overflow: hidden. */
+  font: 500 21px/1.35 var(--font-sans);
+  padding: 2px 0;
   color: var(--ink-2);
   opacity: .75;
   white-space: nowrap;

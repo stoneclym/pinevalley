@@ -66,7 +66,7 @@
 .pill { height: 56px; padding: 0 26px; border-radius: 28px; font: 600 18px/1 var(--font-sans); color: var(--ink); }
 .pill-primary { padding: 0 28px; color: var(--ink-badge); }
 .pill:disabled { opacity: .5; }
-.sheet-hint { font: 500 15px/1 var(--font-sans); color: var(--ink-2); }
+.sheet-hint { margin: 2px 0 0; font: 500 15px/1.2 var(--font-sans); color: var(--ink-2); }
 .sheet-error { display: flex; flex-direction: column; gap: 12px; }
 
 @media (prefers-reduced-motion: reduce) {

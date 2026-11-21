@@ -55,15 +55,13 @@ function GarageSheet({ action, onConfirm, onClose, sheet, leaving }: {
             </p>
           </div>
         )}
+        {/* Cancel on the left, the action on the right. */}
         <div className="sheet-actions">
-          <span />
-          <div className="sheet-buttons">
-            <button type="button" className="glass pill" onClick={onClose} disabled={sheet === "sending"}>Cancel</button>
-            <button type="button" className="white-glass pill pill-primary"
-              onClick={onConfirm} disabled={sheet === "sending"}>
-              {sheet === "sending" ? "Sending…" : sheet === "error" ? "Try again" : verb}
-            </button>
-          </div>
+          <button type="button" className="glass pill" onClick={onClose} disabled={sheet === "sending"}>Cancel</button>
+          <button type="button" className="white-glass pill pill-primary"
+            onClick={onConfirm} disabled={sheet === "sending"}>
+            {sheet === "sending" ? "Sending…" : sheet === "error" ? "Try again" : verb}
+          </button>
         </div>
       </div>
     </div>

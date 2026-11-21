@@ -3,7 +3,6 @@ import type { VoiceConfig } from "../config";
 import { CATEGORIES } from "../lib/categorize";
 import { createStore, useStore } from "../lib/store";
 import { useExit } from "../lib/useExit";
-import { Stop } from "../ui/icons";
 import { type Item, parseAudio, parseGroceries, voiceConfigured } from "./parse";
 import { type Recorder, startRecording } from "./recorder";
 import "./VoiceSheet.css";
@@ -167,15 +166,14 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
               <Waveform live={state.s === "listening"} />
               <span className="sheet-label">{state.s === "listening" ? "Listening" : state.label}</span>
             </div>
+            {/* Cancel on the left, Done (stop listening) on the right. */}
             <div className="sheet-actions">
+              <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
               {state.s === "listening" ? (
-                <button type="button" className="glass sheet-stop" aria-label="Stop listening" onClick={() => recorder.current?.stop()}>
-                  <Stop size={28} />
+                <button type="button" className="white-glass pill pill-primary" onClick={() => recorder.current?.stop()}>
+                  Done
                 </button>
               ) : <span />}
-              <div className="sheet-buttons">
-                <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
-              </div>
             </div>
           </>
         )}
@@ -200,17 +198,15 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
                 </div>
               ))}
               {state.items.length === 0 && <p className="quiet">All items removed.</p>}
+              {state.items.length > 0 && <p className="sheet-hint">Tap an item to remove it</p>}
             </div>
             <div className="sheet-actions">
-              <span className="sheet-hint">Tap an item to remove it</span>
+              <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
               {/* counts and adds only chips that aren't on their way out */}
-              <div className="sheet-buttons">
-                <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
-                <button type="button" className="white-glass pill pill-primary" disabled={!kept.length || adding}
-                  onClick={() => add(kept)}>
-                  {kept.length === 1 ? "Add 1 Item" : `Add ${kept.length} Items`}
-                </button>
-              </div>
+              <button type="button" className="white-glass pill pill-primary" disabled={!kept.length || adding}
+                onClick={() => add(kept)}>
+                {kept.length === 1 ? "Add 1 Item" : `Add ${kept.length} Items`}
+              </button>
             </div>
           </>
         )}
@@ -223,15 +219,12 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
               {state.reason && <p className="sheet-reason">{state.reason}</p>}
             </div>
             <div className="sheet-actions">
-              <span />
-              <div className="sheet-buttons">
-                <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
-                {state.canRetry && (
-                  <button type="button" className="white-glass pill pill-primary" onClick={() => listen(beginRecording(cfg))}>
-                    Try again
-                  </button>
-                )}
-              </div>
+              <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
+              {state.canRetry ? (
+                <button type="button" className="white-glass pill pill-primary" onClick={() => listen(beginRecording(cfg))}>
+                  Try again
+                </button>
+              ) : <span />}
             </div>
           </>
         )}
