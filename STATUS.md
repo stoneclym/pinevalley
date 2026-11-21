@@ -59,17 +59,15 @@ to Home Assistant.
 - Adding an item that is already on the list and unchecked is skipped.
 - The garage tile only shows state (Open, Closed, Opening…, Closing…). Tapping it does nothing,
   so nobody opens the garage by brushing the screen. Works with a `cover.*` or a door `binary_sensor.*`.
-- The sheet shows the category the voice function returns. The list always uses `categorize()`.
-  Usually they agree, but an item the keyword map doesn't know will show under Other in the list.
+- The list puts an item under the category the review sheet showed. That choice is remembered on
+  this iPad only (Home Assistant stores just the name); other items use the keyword map.
 
-## Backend contract for `parse-groceries` (to build later)
+## Backend: `supabase/functions/parse-groceries/index.ts`
 
-`POST <functionUrl>` with headers `Authorization: Bearer <publishableKey>` and `apikey: <publishableKey>`.
-
-- Typed text: `Content-Type: application/json`, body `{ "text": "..." }`
-- Voice: the raw clip as the body, `Content-Type: audio/mp4` (Safari) or `audio/webm`
-
-Response: `{ "transcript": "...", "items": [ { "name": "limes", "quantity": 2, "category": "Produce" } ] }`.
-Category is one of: Produce, Meat & Seafood, Dairy & Eggs, Bakery, Pantry, Frozen, Snacks, Beverages,
-Household, Other. Until it exists, voice records and then says it isn't set up yet, and typed lists
-use the local parser.
+The deployed function, committed unchanged. It takes JSON `{ "text" }` or a raw audio body and
+returns `{ transcript, items: [{ name, quantity, category }] }`, which matches what the app sends
+and reads. Transcription and sorting both use OpenAI (`gpt-transcribe`, then a small GPT model), so
+it needs only the `OPENAI_API_KEY` secret. The spec planned to sort with Claude Haiku; that is not
+what's deployed. It checks the caller's Origin against `ALLOWED_ORIGINS` (default includes
+`https://pinevalley.vercel.app` and local dev ports), limits clips to 2 MB and text to 1,500
+characters, and rate-limits per instance.
