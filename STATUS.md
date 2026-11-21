@@ -37,7 +37,7 @@ to Home Assistant.
 ## People colors and pickup reminder
 
 - `config.json` `people`: name, color, keywords, optional `calendar`. Keywords match whole words,
-  case-insensitive; a calendar mapping wins. Colors: Steve #B4574B, Greyson #4F6E94, Denise #C47A90.
+  case-insensitive; a calendar mapping wins. Colors: Steve #B4574B, Greyson #4F6E94, Denise #C47A90, Family #6F8A5C (sage green).
   Leading names are stripped for display only ("Steve & Denise dinner" shows as "Dinner", red + pink).
 - `config.json` `pickup`: trash weekly on Friday, recycling every other Friday from 2026-11-27,
   holiday `overrides` (move or skip). The day before, a bronze card sits at the top of Today.

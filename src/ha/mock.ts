@@ -45,6 +45,7 @@ export function mockEvents(now: Date) {
     ev("Steve & Denise dinner", at(0, h(2), 0), at(0, h(2), 50), false, "The Fortunate Glass"), // red + pink split
     ev("Steve: dentist", at(0, h(3), 0), at(0, h(3), 45)),                                  // red, stripped
     ev("Dinner with Greyson", at(0, h(4), 0), at(0, h(4), 50)),                             // blue, unchanged
+    ev("Family movie night", at(0, h(5), 0), at(0, h(5), 50)),                              // green, stripped
     ev("Book club", at(1, 10), at(1, 11, 30), false, "Northeast Library"),                  // unmatched
     ev("Steve", at(1, 19), at(1, 21)),                                                      // red, unchanged
     ev("Denise's yoga", at(2, 9, 30), at(2, 10, 30)),                                       // pink, stripped

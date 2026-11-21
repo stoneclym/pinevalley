@@ -49,3 +49,20 @@ describe("calendar mapping", () => {
     expect(peopleFor("Steve's party", "calendar.family", withCal).map((p) => p.name)).toEqual(["Steve"]);
   });
 });
+
+describe("Family", () => {
+  const WITH_FAMILY: Person[] = [...PEOPLE, { name: "Family", color: "green", keywords: ["Family"] }];
+  const who = (t: string) => peopleFor(t, undefined, WITH_FAMILY).map((p) => p.name);
+  it("strips a leading Family and colors the event green", () => {
+    expect(displayTitle("Family dinner", WITH_FAMILY)).toBe("Dinner");
+    expect(who("Family dinner")).toEqual(["Family"]);
+    expect(displayTitle("Family: beach day", WITH_FAMILY)).toBe("Beach day");
+  });
+  it("combines with a person", () => {
+    expect(displayTitle("Family & Steve - movie night", WITH_FAMILY)).toBe("Movie night");
+    expect(who("Family & Steve - movie night")).toEqual(["Steve", "Family"]);
+  });
+  it("leaves a lone Family as is", () => {
+    expect(displayTitle("Family", WITH_FAMILY)).toBe("Family");
+  });
+});
