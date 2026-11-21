@@ -84,3 +84,5 @@
   .chip { animation: fade-in 160ms ease both; }
   .chip-leaving { animation: dim-out 100ms ease forwards; }
 }
+
+.sheet-reason { margin: 0; font: 500 13px/1.3 ui-monospace, Menlo, monospace; color: var(--ink-2); opacity: .8; user-select: text; -webkit-user-select: text; }

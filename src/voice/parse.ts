@@ -48,7 +48,11 @@ async function post(cfg: VoiceConfig, body: BodyInit, contentType: string): Prom
       body,
       signal: ctl.signal,
     });
-    if (!res.ok) throw new Error(`parse-groceries: HTTP ${res.status}`);
+    if (!res.ok) {
+      // Keep the function's own error code (e.g. origin_not_allowed) so the sheet can show it.
+      const code = await res.json().then((b: { error?: string }) => b?.error).catch(() => undefined);
+      throw new Error(`Voice server: ${code ?? "error"} (HTTP ${res.status})`);
+    }
     const data = (await res.json()) as { transcript?: string; items?: RemoteItem[] };
     return {
       transcript: (data.transcript ?? "").trim(),

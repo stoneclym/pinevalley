@@ -25,7 +25,7 @@ type State =
   | { s: "listening" }
   | { s: "working"; label: string }
   | { s: "review"; transcript: string; items: Item[] }
-  | { s: "error"; title: string; detail?: string; canRetry: boolean };
+  | { s: "error"; title: string; detail?: string; reason?: string; canRetry: boolean };
 
 const BARS = 13;
 
@@ -84,11 +84,15 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
       .catch((err: unknown) => {
         if (!alive.current) return;
         console.error("voice failed", err);
-        const name = (err as { name?: string })?.name;
+        const e = err as { name?: string; message?: string };
+        // Show the real reason in small print, so a failure on the iPad can be diagnosed.
+        const reason = e?.name && e.name !== "Error" ? `${e.name}: ${e.message ?? ""}` : (e?.message ?? String(err));
         setState(
-          name === "NotAllowedError"
-            ? { s: "error", title: "Microphone is off", detail: "Allow the microphone for this app, then try again.", canRetry: true }
-            : { s: "error", title: "Couldn’t catch that", canRetry: true },
+          e?.name === "NotAllowedError"
+            ? { s: "error", title: "Microphone is off", detail: "Allow the microphone for this app, then try again.", reason, canRetry: true }
+            : e?.name === "NotFoundError" || e?.name === "NotReadableError" || e?.name === "AbortError"
+              ? { s: "error", title: "The microphone didn’t start", detail: "Close the app completely and open it again. If that doesn’t help, restart the iPad.", reason, canRetry: true }
+              : { s: "error", title: "Couldn’t catch that", reason, canRetry: true },
         );
       });
   };
@@ -216,6 +220,7 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
             <div className="sheet-error">
               <p className="sheet-transcript">{state.title}</p>
               {state.detail && <p className="quiet">{state.detail}</p>}
+              {state.reason && <p className="sheet-reason">{state.reason}</p>}
             </div>
             <div className="sheet-actions">
               <span />
