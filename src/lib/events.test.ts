@@ -58,8 +58,8 @@ describe("normalizeEvents + todayView", () => {
 
 describe("weekView", () => {
   const week = weekView(normalizeEvents(RAW), NOW);
-  it("covers the next six days", () => {
-    expect(week.map((d) => d.date.getDate())).toEqual([21, 22, 23, 24, 25, 26]);
+  it("covers the next seven days", () => {
+    expect(week.map((d) => d.date.getDate())).toEqual([21, 22, 23, 24, 25, 26, 27]);
   });
   it("places timed and multi-day all-day events", () => {
     expect(week[0].timed.map((e) => e.title)).toEqual(["Soccer game"]);
@@ -68,6 +68,6 @@ describe("weekView", () => {
     expect(week[1].timed.length + week[1].allDay.length).toBe(0);
   });
   it("crosses a month boundary", () => {
-    expect(weekView([], new Date(2026, 10, 28)).map((d) => d.date.getDate())).toEqual([29, 30, 1, 2, 3, 4]);
+    expect(weekView([], new Date(2026, 10, 28)).map((d) => d.date.getDate())).toEqual([29, 30, 1, 2, 3, 4, 5]);
   });
 });

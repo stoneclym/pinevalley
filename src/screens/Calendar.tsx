@@ -19,7 +19,8 @@ export function Calendar({ config, go }: { config: HubConfig; go: (s: ScreenName
   const now = useNow();
   const { events, loaded } = useCalendar(config.calendars);
   const today = todayView(events, now);
-  const week = weekView(events, now).filter((d) => d.allDay.length || d.timed.length);
+  // Every one of the next 7 days, so the whole week ahead is visible; empty days say so quietly.
+  const week = weekView(events, now);
   const todayEmpty = loaded && !today.allDay.length && !today.timed.length;
 
   return (
@@ -75,6 +76,7 @@ export function Calendar({ config, go }: { config: HubConfig; go: (s: ScreenName
                   <span className="cal-day-num">{d.date.getDate()}</span>
                 </span>
                 <span className="cal-day-events">
+                  {d.allDay.length + d.timed.length === 0 && <span className="cal-line cal-line-empty">Nothing planned</span>}
                   {[...d.allDay, ...d.timed].map((e) => {
                     const p = personInfo(e, config.people);
                     return (
@@ -88,9 +90,6 @@ export function Calendar({ config, go }: { config: HubConfig; go: (s: ScreenName
                 </span>
               </div>
             ))}
-            {loaded && week.length === 0 && COPY.nothingThisWeek && (
-              <p className="quiet cal-empty cal-week-empty">{COPY.nothingThisWeek}</p>
-            )}
           </div>
         </section>
       </div>

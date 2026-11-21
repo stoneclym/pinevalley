@@ -1,5 +1,5 @@
 /**
- * Calendar events for today plus the next 6 days, merged from every calendar in config.json.
+ * Calendar events for today plus the next 7 days, merged from every calendar in config.json.
  *
  * Live: the `calendar/event/subscribe` WebSocket command the HA frontend uses. Home Assistant
  * pushes the full event list for the window whenever it changes, so nothing polls. The window
@@ -69,7 +69,7 @@ async function subscribeAll() {
 
   const conn = await getConnection();
   const from = startOfDay(new Date());
-  const to = addDays(from, 7);
+  const to = addDays(from, 8);
   for (const id of ids) {
     try {
       const unsub = await conn.subscribeMessage<{ events: RawEvent[] | null }>(
@@ -84,7 +84,7 @@ async function subscribeAll() {
     } catch (err) {
       console.warn(`calendar/event/subscribe unavailable for ${id}; polling instead`, err);
       await pollOnce(conn, id, from, to);
-      const t = window.setInterval(() => pollOnce(conn, id, startOfDay(new Date()), addDays(startOfDay(new Date()), 7)), FALLBACK_REFRESH_MS);
+      const t = window.setInterval(() => pollOnce(conn, id, startOfDay(new Date()), addDays(startOfDay(new Date()), 8)), FALLBACK_REFRESH_MS);
       cleanups.push(() => clearInterval(t));
     }
   }

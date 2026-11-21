@@ -79,10 +79,10 @@ export function todayView(events: CalEvent[], now: Date): TodayView {
 
 export type WeekDay = { date: Date; allDay: CalEvent[]; timed: CalEvent[] };
 
-/** The 6 days after today (a rolling 7 days including today). */
+/** The next 7 days after today (for Saturday the 21st: Sunday the 22nd to Saturday the 28th). */
 export function weekView(events: CalEvent[], now: Date): WeekDay[] {
   const today = startOfDay(now);
-  return Array.from({ length: 6 }, (_, i) => {
+  return Array.from({ length: 7 }, (_, i) => {
     const date = addDays(today, i + 1);
     const day = events.filter((e) => onDay(e, date));
     return { date, allDay: day.filter((e) => e.allDay), timed: day.filter((e) => !e.allDay) };

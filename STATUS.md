@@ -64,7 +64,7 @@ to Home Assistant.
 
 - Timed events that have ended drop off Home and the Calendar Today panel.
 - Home shows at most 2 all-day and 4 timed events, then `+N more`.
-- This week lists only days that have events (from "Real data only" in the spec).
+- This week lists all of the next 7 days; empty days say "Nothing planned" quietly.
 - Adding an item that is already on the list and unchecked is skipped.
 - Tiles never change color. Buttons press in (tiles to 0.96) and spring back. While Morning or Good Night
   runs, only its icon changes (gold rising sun, purple moon) and breathes gently; when Home Assistant

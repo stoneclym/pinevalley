@@ -31,7 +31,7 @@
 
 .cal-week { flex: 1; padding: 24px 22px 12px; }
 .cal-week-head { margin: 0 0 6px; padding-left: 6px; }
-.cal-day { display: flex; align-items: flex-start; gap: 18px; padding: 14px 6px; }
+.cal-day { display: flex; align-items: flex-start; gap: 18px; padding: 11px 6px; }
 .cal-day + .cal-day { border-top: 1px solid rgba(255, 255, 255, .72); }
 .cal-day-date { width: 58px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .cal-day-wd { font: 600 13px/1 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
@@ -44,3 +44,4 @@
 .cal-line .cal-line-time { flex: none; }
 .cal-allday .pdots { margin-right: 0; }
 .cal-line-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-line-empty { color: var(--ink-2); }
