@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { HubConfig } from "../config";
 import { currentUserName, MOCK } from "../ha/connection";
 import { useEntities } from "../ha/entities";
+import { WEATHER_CONDITIONS, WeatherIcon } from "../ui/icons";
 import { Screen } from "./Screen";
 import "./Setup.css";
 
@@ -72,6 +73,14 @@ export function Setup({ config }: { config: HubConfig }) {
             </section>
           );
         })}
+        <section className="setup-card glass">
+          <h2>Weather icons</h2>
+          <div className="setup-weather">
+            {WEATHER_CONDITIONS.map((c) => (
+              <span key={c}><WeatherIcon condition={c} /><small>{c}</small></span>
+            ))}
+          </div>
+        </section>
       </div>
     </Screen>
   );

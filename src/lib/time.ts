@@ -16,3 +16,41 @@ export function formatShortDate(d: Date): string {
 export function msUntilNextMinute(d: Date): number {
   return Math.max(1, 60_000 - (d.getSeconds() * 1000 + d.getMilliseconds()));
 }
+
+const LONG_WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const LONG_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
+  "September", "October", "November", "December"];
+
+/** Event time: `8:30 AM`. */
+export function formatTime(d: Date): string {
+  const h = d.getHours() % 12 || 12;
+  return `${h}:${String(d.getMinutes()).padStart(2, "0")} ${d.getHours() < 12 ? "AM" : "PM"}`;
+}
+
+/** `Friday, November 20`. */
+export function formatLongDate(d: Date): string {
+  return `${LONG_WEEKDAYS[d.getDay()]}, ${LONG_MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+/** `SAT`-style short weekday (shown uppercase by CSS). */
+export function shortWeekday(d: Date): string {
+  return WEEKDAYS[d.getDay()];
+}
+
+export function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+export function addDays(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, d.getHours(), d.getMinutes());
+}
+
+export function sameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+/** HA wants local wall-clock time: `2026-11-20 00:00:00`. */
+export function haDateTime(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}

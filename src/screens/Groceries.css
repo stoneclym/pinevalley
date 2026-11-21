@@ -1,0 +1,53 @@
+/* Measurements from design/Groceries-Light.dc.html. */
+.addbar {
+  height: 72px;
+  flex: none;
+  border-radius: 36px;
+  box-sizing: border-box;
+  padding: 0 10px 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.addbar-field { flex: 1; display: flex; align-items: center; min-width: 0; }
+.addbar-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  font: 500 21px/1 var(--font-sans);
+  color: var(--ink);
+  caret-color: var(--ink);
+}
+.addbar-field input::placeholder { color: var(--ink-2); opacity: .75; }
+.addbar-mic { width: 52px; height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center; flex: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.g-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; margin: -10px -20px -36px; padding: 10px 20px 36px; }
+.g-columns { column-count: 2; column-gap: 18px; }
+.g-card {
+  border-radius: 30px;
+  box-sizing: border-box;
+  padding: 20px 20px 8px;
+  break-inside: avoid;
+  margin-bottom: 18px;
+}
+.g-card-title { margin: 0 0 4px; padding-left: 6px; }
+.g-row {
+  width: 100%;
+  height: 60px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.g-check { width: 32px; height: 32px; flex: none; box-sizing: border-box; border-radius: 16px; border: 2px solid var(--ink-2); opacity: .7; }
+.g-check-on { width: 32px; height: 32px; flex: none; border-radius: 16px; background: var(--ink); display: flex; align-items: center; justify-content: center; }
+.g-name { font: 500 21px/1 var(--font-sans); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-row-done .g-name { text-decoration: line-through; color: var(--ink-2); }
+.g-completed { box-sizing: border-box; padding: 4px 20px 0; break-inside: avoid; }
+.g-completed-head { display: flex; align-items: center; justify-content: space-between; padding-left: 6px; }
+.g-completed-head h2 { margin: 0; }
+.g-clear { height: 40px; padding: 0 18px; border-radius: 20px; font: 600 16px/1 var(--font-sans); color: var(--ink); }
+.g-empty { margin: 8px 6px; }

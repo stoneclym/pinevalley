@@ -1,10 +1,13 @@
+/* Measurements from design/Home-1-Light.dc.html (1180 × 820). */
 .home {
   padding: 0 52px 24px 76px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.home-left { display: flex; flex-direction: column; align-items: flex-start; }
+.home-row { display: flex; align-items: stretch; gap: 64px; }
+.home-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+
 .home-dateline {
   display: flex;
   align-items: center;
@@ -15,11 +18,96 @@
 }
 .home-weather { display: flex; align-items: center; gap: 7px; margin-left: 20px; }
 .home-weather-icon { display: block; position: relative; top: 1px; }
-.home-weather-icon svg { display: block; }
+
 .home-clock {
-  width: 710px;
+  min-width: 710px;
   font: 400 400px/0.86 var(--font-serif);
   letter-spacing: -0.015em;
   font-feature-settings: "lnum" 1;
   white-space: nowrap;
 }
+
+.tiles { display: flex; align-items: center; gap: 14px; margin-top: 34px; margin-left: 8px; }
+.tile {
+  width: var(--tile-size);
+  height: var(--tile-size);
+  flex: none;
+  box-sizing: border-box;
+  padding: 18px;
+  border-radius: var(--tile-radius);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  color: var(--ink);
+}
+.tile-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.tile-icon { display: block; transition: opacity 200ms ease, transform 200ms ease; }
+.tile-running .tile-icon { animation: tile-pulse 900ms ease-in-out infinite; }
+.tile-done .tile-icon, .tile-error .tile-icon { animation: tile-pop 260ms cubic-bezier(.2,.8,.2,1); }
+@keyframes tile-pulse { 50% { opacity: .45; } }
+@keyframes tile-pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.tile-error { color: #8a3d17; }
+.tile-label { font: 600 17px/1.1 var(--font-sans); white-space: nowrap; }
+.tile-badge {
+  min-width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 0 9px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 15px/1 var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Today panel: text straight on the background, no card. */
+.today {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0 6px;
+  color: var(--ink);
+}
+.today-head { display: flex; align-items: baseline; justify-content: space-between; }
+.today-title { font: 400 44px/1 var(--font-serif); }
+.today-link { display: flex; align-items: center; gap: 2px; font: 600 16px/1 var(--font-sans); color: var(--ink-2); }
+.caps-sm {
+  font: 600 12px/1 var(--font-sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.today-allday { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
+.today-allday + .today-allday { margin-top: 12px; }
+.today-allday-title { font: 600 18px/1 var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.timeline {
+  position: relative;
+  margin-top: 30px;
+  margin-left: 6px;
+  border-left: 1.5px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding: 2px 0 4px;
+}
+.tl-event { position: relative; padding-left: 30px; display: flex; flex-direction: column; gap: 7px; }
+.tl-dot-filled {
+  position: absolute; left: -7px; top: 5px;
+  width: 13px; height: 13px; border-radius: 7px; background: var(--ink);
+}
+.tl-dot {
+  position: absolute; left: -6px; top: 6px;
+  width: 11px; height: 11px; box-sizing: border-box; border-radius: 6px;
+  border: 1.5px solid var(--ink-2); background: var(--dot-hollow-fill);
+}
+.tl-time { display: flex; align-items: center; font: 600 16px/1.2 var(--font-sans); color: var(--ink-2); }
+.tl-next-label { color: var(--ink); margin-left: 10px; }
+.tl-title { font: 500 22px/1.1 var(--font-sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-next .tl-title { font: 600 28px/1.1 var(--font-sans); }
+.tl-location { font: 500 17px/1.1 var(--font-sans); color: var(--ink-2); }
+.today-more { margin: 24px 0 0 36px; font: 600 16px/1 var(--font-sans); color: var(--ink-2); }
+.today-empty { margin-top: 22px; }

@@ -24,3 +24,26 @@ describe("msUntilNextMinute", () => {
     expect(msUntilNextMinute(new Date(2026, 10, 20, 5, 18, 0, 0))).toBe(60_000);
   });
 });
+
+import { addDays, formatLongDate, formatTime, haDateTime } from "./time";
+
+describe("formatTime", () => {
+  it("formats event times", () => {
+    expect(formatTime(new Date(2026, 10, 20, 8, 30))).toBe("8:30 AM");
+    expect(formatTime(new Date(2026, 10, 20, 12, 30))).toBe("12:30 PM");
+    expect(formatTime(new Date(2026, 10, 20, 0, 5))).toBe("12:05 AM");
+    expect(formatTime(new Date(2026, 10, 20, 18, 30))).toBe("6:30 PM");
+  });
+});
+
+describe("dates", () => {
+  it("formats the long date", () => {
+    expect(formatLongDate(new Date(2026, 10, 20))).toBe("Friday, November 20");
+  });
+  it("adds days across a month end", () => {
+    expect(formatLongDate(addDays(new Date(2026, 10, 29), 3))).toBe("Wednesday, December 2");
+  });
+  it("formats HA local date-times", () => {
+    expect(haDateTime(new Date(2026, 10, 20, 7, 5, 9))).toBe("2026-11-20 07:05:09");
+  });
+});

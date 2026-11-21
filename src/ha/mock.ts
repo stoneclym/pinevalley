@@ -27,3 +27,37 @@ export function mockEntities(): HassEntities {
   ].map((e) => [e.entity_id, e]),
   );
 }
+
+/** Sample events relative to "now", for dev mock mode only. */
+export function mockEvents(now: Date) {
+  const at = (dayOffset: number, h: number, m = 0) =>
+    new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset, h, m);
+  const day = (dayOffset: number) => at(dayOffset, 0);
+  const ev = (title: string, start: Date, end: Date, allDay = false, location?: string) => ({
+    id: `${title}-${start.getTime()}`, title, start, end, allDay, location,
+  });
+  const nextHour = Math.min(now.getHours() + 1, 20);
+  return [
+    ev("Trash pickup", day(0), day(1), true),
+    ev("Book club", at(0, nextHour, 30), at(0, nextHour + 1, 30), false, "Northeast Library"),
+    ev("Dentist", at(0, Math.min(nextHour + 3, 21), 30), at(0, Math.min(nextHour + 4, 22), 15)),
+    ev("Family dinner", at(0, 22, 30), at(0, 23, 30)),
+    ev("Soccer game", at(1, 10), at(1, 11, 30)),
+    ev("Movie night", at(1, 19), at(1, 21)),
+    ev("Church", at(2, 9, 30), at(2, 11)),
+    ev("Piano lesson", at(3, 16), at(3, 17)),
+    ev("Grandma arrives", day(5), day(6), true),
+    ev("Thanksgiving", day(6), day(7), true),
+  ].sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+export function mockTodoItems() {
+  const item = (summary: string, done = false) => ({
+    uid: summary, summary, status: done ? ("completed" as const) : ("needs_action" as const),
+  });
+  return [
+    item("Avocados"), item("Limes"), item("Cilantro"), item("Milk"), item("Eggs"),
+    item("Taco shells"), item("Coffee beans"), item("Paper towels"),
+    item("Bananas", true), item("Olive oil", true),
+  ];
+}

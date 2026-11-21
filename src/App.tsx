@@ -1,35 +1,54 @@
 import { useEffect, useState } from "react";
 import type { HubConfig } from "./config";
 import { useConnectionStatus } from "./ha/useStatus";
+import { useIdle } from "./lib/useIdle";
+import { Calendar } from "./screens/Calendar";
+import { Groceries } from "./screens/Groceries";
 import { Home } from "./screens/Home";
 import { Setup } from "./screens/Setup";
 
-function useHashRoute(): string {
-  const read = () => location.hash.replace(/^#/, "") || "/";
-  const [route, setRoute] = useState(read);
+export type ScreenName = "home" | "calendar" | "groceries";
+
+/**
+ * Screens switch in memory only. The URL never changes, because a hash change in an
+ * installed iPad web app can bring the microphone prompt back (spec section 6).
+ * The hidden #/setup page is the one exception and is not used on the wall iPad.
+ */
+function useSetupHash(): boolean {
+  const read = () => location.hash === "#/setup";
+  const [on, setOn] = useState(read);
   useEffect(() => {
-    const on = () => setRoute(read());
-    window.addEventListener("hashchange", on);
-    return () => window.removeEventListener("hashchange", on);
+    const f = () => setOn(read());
+    window.addEventListener("hashchange", f);
+    return () => window.removeEventListener("hashchange", f);
   }, []);
-  return route;
+  return on;
 }
 
 function OfflineIndicator() {
   const status = useConnectionStatus();
   if (status !== "offline") return null;
-  return (
-    <div className="offline-dot" role="status">
-      Offline
-    </div>
-  );
+  return <div className="offline-dot" role="status">Offline</div>;
 }
 
 export function App({ config }: { config: HubConfig }) {
-  const route = useHashRoute();
+  const setup = useSetupHash();
+  const [screen, setScreen] = useState<ScreenName>("home");
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Back to Home after a minute without touches, but never while the voice sheet is open.
+  useIdle(config.autoReturnSeconds, !setup && screen !== "home" && !sheetOpen, () => setScreen("home"));
+
+  if (setup) return <Setup config={config} />;
+
+  const go = (s: ScreenName) => setScreen(s);
   return (
     <>
-      {route === "/setup" ? <Setup config={config} /> : <Home config={config} />}
+      <div key={screen} className={`screen-transition ${screen === "home" ? "to-home" : "to-detail"}`}>
+        {screen === "home" && <Home config={config} go={go} />}
+        {screen === "calendar" && <Calendar config={config} go={go} />}
+        {screen === "groceries" && <Groceries config={config} go={go} onSheetChange={setSheetOpen} />}
+      </div>
       <OfflineIndicator />
     </>
   );

@@ -1,7 +1,7 @@
 # Pine Valley Home Hub
 
 A wall iPad app (iPad Air 4, landscape, light theme only) served from Home Assistant.
-The full build spec is in [CLAUDE.md](CLAUDE.md). The Claude Design export is in [design/](design/)
+The full build spec is in [CLAUDE.md](CLAUDE.md). Progress is in [STATUS.md](STATUS.md). The Claude Design export is in [design/](design/)
 (only the `*-Light` files apply; dark mode was removed on purpose).
 
 ## Develop
