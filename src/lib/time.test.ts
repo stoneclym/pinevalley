@@ -54,5 +54,6 @@ describe("formatSince", () => {
   const now = new Date(2026, 10, 21, 18, 0);
   it("shows the time today", () => expect(formatSince(new Date(2026, 10, 21, 16, 12), now)).toBe("since 4:12 PM"));
   it("shows the weekday this week", () => expect(formatSince(new Date(2026, 10, 19, 7, 5), now)).toBe("since Thu 7:05 AM"));
+  it("drops the time on earlier days when compact", () => expect(formatSince(new Date(2026, 10, 19, 7, 5), now, true)).toBe("since Thu"));
   it("shows the date when older", () => expect(formatSince(new Date(2026, 10, 2, 9, 0), now)).toBe("since Nov 2"));
 });

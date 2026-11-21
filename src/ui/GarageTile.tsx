@@ -13,7 +13,7 @@ const STATE_TEXT: Record<DoorState, string> = {
   open: "Open",
   opening: "Opening…",
   closing: "Closing…",
-  unavailable: "Garage offline",
+  unavailable: "Offline", // reads "Garage / Offline" under the label
 };
 
 /** How long the tile says "Sending…" while waiting for the door to report movement. */
@@ -137,14 +137,12 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
     <>
       <button type="button" onClick={ask} disabled={!tappable}
         className={`glass tile garage garage-${door.state} ${sending ? "garage-sending" : ""} ${isOpen ? "garage-open-tint" : ""}`}
-        aria-label={`${tile.label}: ${text || "loading"}${tappable ? `. Tap to ${door.state === "open" ? "close" : "open"}` : ""}`}>
-        <span className="garage-top">
-          <span className="tile-icon">{isOpen ? <GarageOpen size={32} /> : <GarageClosed size={32} />}</span>
-          <span className="garage-label">{tile.label}</span>
-        </span>
-        <span className="garage-bottom">
-          <span className="garage-state">{text}</span>
-          {showSince && <span className="garage-since">{formatSince(door.since!, now)}</span>}
+        aria-label={`${tile.label}: ${door.state === "unavailable" && !sending ? "offline" : text || "loading"}${tappable ? `. Tap to ${door.state === "open" ? "close" : "open"}` : ""}`}>
+        <span className="tile-icon">{isOpen ? <GarageOpen size={32} /> : <GarageClosed size={32} />}</span>
+        <span className="tile-text">
+          <span className="tile-label">{tile.label}</span>
+          <span className="tile-state">{text}</span>
+          {showSince && <span className="garage-since">{formatSince(door.since!, now, true)}</span>}
         </span>
       </button>
       {sheet && (
