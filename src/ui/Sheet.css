@@ -106,3 +106,20 @@
 }
 .sheet-input::placeholder { color: var(--ink-2); opacity: .6; }
 @media (prefers-reduced-motion: reduce) { .wave-live span { animation: none; transform: scaleY(.6); } }
+
+/* iOS-style activity indicator for "Sorting your list…": twelve spokes fading round. */
+.spinner { position: relative; width: 44px; height: 44px; flex: none; }
+.spinner span {
+  position: absolute;
+  left: 20.5px;
+  top: 3px;
+  width: 3px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform-origin: 1.5px 19px;
+  animation: spoke 1s linear infinite;
+}
+@keyframes spoke { from { opacity: .95; } to { opacity: .12; } }
+@media (prefers-reduced-motion: reduce) { .spinner span { animation-duration: 2s; } }
+.sheet-typing[hidden] { display: none; }

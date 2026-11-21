@@ -4,7 +4,7 @@ import { commandDoor, type DoorState, useDoor } from "../ha/door";
 import { useConnectionStatus } from "../ha/useStatus";
 import { useExit } from "../lib/useExit";
 import { GarageClosed, GarageOpen } from "./icons";
-import "../voice/VoiceSheet.css"; // shared glass sheet styles
+import "./Sheet.css"; // shared glass sheet styles
 import "./GarageTile.css";
 
 const STATE_TEXT: Record<DoorState, string> = {

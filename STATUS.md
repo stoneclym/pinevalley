@@ -11,8 +11,8 @@ Updated 2026-11-21. Spec: [CLAUDE.md](CLAUDE.md).
 | 2 | Home: clock, date and weather, tiles, Today panel | Done | Not yet |
 | 3 | Calendar view: Today and This week | Done | Not yet. Needs real calendar IDs |
 | 4 | Grocery list: cards, check off, Completed, Clear, badge, live updates | Done | Not yet |
-| 5 | Add by typing | Backup only: "Type" in the voice sheet (and on any voice error) opens a text field | Not yet |
-| 6 | Voice: Listening, Transcribing, Review, error states, recorder | Front end done | Needs the `parse-groceries` backend |
+| 5 | Add by typing | Done: the add bar opens a text field with the keyboard up (use its dictation key for voice) | Not yet |
+| 6 | Voice recording | Shelved: the iPad Home Screen app kept losing the microphone. Recorder kept in `src/voice/recorder.ts`, unused | n/a |
 | 7 | Scene tiles with confirmation and error state | Done | Not yet. Needs the HA scripts |
 | 7b | Garage tile: live state, since-time, confirm sheet, open/close via `cover.*` | Done | Not yet. `cover.pine_valley_garage_door` |
 | 8 | Polish: motion, empty states, offline label | Partly | Frame rate and a day-long soak test happen on the iPad |
@@ -31,7 +31,7 @@ to Home Assistant.
 | 3 Calendar | `calendar/event/subscribe` for today plus 6 days, pushed live (falls back to `calendar.get_events` every 5 min) | Sample events relative to the current time |
 | 4 Groceries | Live `todo/item/subscribe` list; checks and Clear go to HA | Sample list; changes stay in the page |
 | 5 Typed add | Removed: the add bar opens voice mode | Same |
-| 6 Voice | Real recording. Sorting needs the `parse-groceries` function, which doesn't exist yet, so the sheet says voice isn't set up after recording | Same |
+| 6 Voice | Shelved. Typed (or dictated) lists are sorted by `parse-groceries` when configured, local rules otherwise | Local rules |
 | 7 Scenes, garage | `script.turn_on` / `scene.turn_on`; garage state pushed by `subscribe_entities`, commands via `cover.open_cover` / `cover.close_cover` | Scene tiles fake success; the garage fakes Sending, Opening, then Open |
 
 ## Checked here (dev machine, mock mode, 1180 × 820)

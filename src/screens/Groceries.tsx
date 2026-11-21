@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import type { ScreenName } from "../App";
 import type { HubConfig } from "../config";
 import { COPY } from "../copy";
@@ -7,8 +8,8 @@ import { CATEGORIES } from "../lib/categorize";
 import { categoryFor } from "../lib/categoryMemory";
 import { type Presence, useFlip, usePresence } from "../lib/motion";
 import { BackHeader } from "../ui/BackHeader";
-import { Check, Mic, Sparkle } from "../ui/icons";
-import { beginRecording, type SheetInput, VoiceSheet } from "../voice/VoiceSheet";
+import { Check, Keyboard, Sparkle } from "../ui/icons";
+import { AddSheet } from "../ui/AddSheet";
 import { Screen } from "./Screen";
 import "./Groceries.css";
 
@@ -92,8 +93,9 @@ export function Groceries({ config, go, onSheetChange }: {
   onSheetChange: (open: boolean) => void;
 }) {
   const { items, loaded } = useTodo(config.groceryList);
-  const [sheet, setSheet] = useState<SheetInput | null>(null);
-  useEffect(() => onSheetChange(sheet !== null), [sheet, onSheetChange]);
+  const [sheet, setSheet] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => onSheetChange(sheet), [sheet, onSheetChange]);
 
   const columnsRef = useRef<HTMLDivElement>(null);
   const columnOf = useRef(new Map<string, 0 | 1>());
@@ -110,8 +112,11 @@ export function Groceries({ config, go, onSheetChange }: {
   useFlip(columnsRef);
 
   // Started here, inside the tap, so Safari lets the audio start.
-  const startVoice = () => {
-    setSheet({ kind: "voice", recorder: beginRecording(config.voice) });
+  // Open the sheet and focus its field inside this tap, so iPadOS shows the keyboard
+  // (with its dictation key) right away.
+  const openAdd = () => {
+    flushSync(() => setSheet(true));
+    inputRef.current?.focus();
   };
 
   return (
@@ -120,11 +125,11 @@ export function Groceries({ config, go, onSheetChange }: {
         detail={open.length ? `${open.length} ${open.length === 1 ? "item" : "items"}` : undefined} />
 
       {/* The whole bar opens voice mode. There is no text field, so the keyboard never appears. */}
-      <button type="button" className="glass addbar" onClick={startVoice} aria-label="Add items by voice">
+      <button type="button" className="glass addbar" onClick={openAdd} aria-label="Add items">
         <Sparkle size={26} color="var(--ink-2)" />
         <span className="addbar-text">{COPY.addPlaceholder}</span>
         <span className="white-glass addbar-mic" aria-hidden="true">
-          <Mic size={26} />
+          <Keyboard size={24} />
         </span>
       </button>
 
@@ -158,7 +163,7 @@ export function Groceries({ config, go, onSheetChange }: {
       </div>
 
       {sheet && (
-        <VoiceSheet input={sheet} cfg={config.voice} onAdd={addItems} onClose={() => setSheet(null)} />
+        <AddSheet cfg={config.voice} onAdd={addItems} onClose={() => setSheet(false)} inputRef={inputRef} />
       )}
     </Screen>
   );
