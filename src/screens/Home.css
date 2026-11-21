@@ -112,8 +112,8 @@
 .today-more { margin: 24px 0 0 36px; font: 600 16px/1 var(--font-sans); color: var(--ink-2); }
 .today-empty { margin-top: 22px; }
 
-/* Status tile: name, then state underneath in the secondary color, like Apple Home. */
+/* Tile with a second line (e.g. "Not set up"), in the secondary color like Apple Home. */
 .tile-text { display: flex; flex-direction: column; gap: 4px; }
 .tile-state { font: 500 15px/1.1 var(--font-sans); color: var(--ink-2); white-space: nowrap; }
-.tile-status-open .tile-state { color: var(--ink); font-weight: 600; }
-.tile-status-open { background: rgba(255, 248, 236, .62); }
+.tile-missing { opacity: .55; cursor: default; }
+.tile-missing:active { transform: none; }

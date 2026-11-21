@@ -30,7 +30,7 @@
       "id": "garage",
       "label": "Garage",
       "icon": "garage",
-      "entity_id": "cover.REPLACE_GARAGE_DOOR"
+      "entity_id": "cover.pine_valley_garage_door"
     }
   ]
 }

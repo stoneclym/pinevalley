@@ -83,15 +83,29 @@ export async function addItems(input: NewItem[]): Promise<void> {
   for (const item of names) await call("add_item", { item });
 }
 
-export async function setStatus(item: TodoItem, status: TodoStatus): Promise<void> {
-  // Show the change at once; the subscription confirms (or corrects) it a moment later.
-  localChange((items) => items.map((i) => (i.uid === item.uid ? { ...i, status } : i)));
+/** Show a change at once; if Home Assistant rejects it, put the list back as it was. */
+async function optimistic(fn: (items: TodoItem[]) => TodoItem[], send: () => Promise<void>) {
+  const before = store.get();
+  localChange(fn);
   if (MOCK) return;
-  await call("update_item", { item: item.uid, status });
+  try {
+    await send(); // the subscription then confirms the change with Home Assistant's own list
+  } catch (err) {
+    store.set(before);
+    throw err;
+  }
 }
 
-export async function clearCompleted(): Promise<void> {
-  localChange((items) => items.filter((i) => i.status !== "completed"));
-  if (MOCK) return;
-  await call("remove_completed_items", {});
+export function setStatus(item: TodoItem, status: TodoStatus): Promise<void> {
+  return optimistic(
+    (items) => items.map((i) => (i.uid === item.uid ? { ...i, status } : i)),
+    () => call("update_item", { item: item.uid, status }),
+  );
+}
+
+export function clearCompleted(): Promise<void> {
+  return optimistic(
+    (items) => items.filter((i) => i.status !== "completed"),
+    () => call("remove_completed_items", {}),
+  );
 }

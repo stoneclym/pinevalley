@@ -24,9 +24,8 @@ function start() {
     return;
   }
   getConnection()
-    .then((conn) =>
-      subscribeEntities(conn, publish),
-    )
+    // subscribe_entities over the WebSocket: Home Assistant pushes every change, no polling.
+    .then((conn) => subscribeEntities(conn, publish))
     .catch(() => {
       started = false; // allow a retry on the next subscriber
     });
@@ -43,4 +42,24 @@ export function useEntities(): HassEntities | null {
     };
   }, []);
   return ents;
+}
+
+/** The latest states, waiting for the first update if needed. */
+export function whenEntities(): Promise<HassEntities> {
+  if (latest) return Promise.resolve(latest);
+  start();
+  return new Promise((resolve) => {
+    const once: Listener = (e) => {
+      listeners.delete(once);
+      resolve(e);
+    };
+    listeners.add(once);
+  });
+}
+
+/** Demo mode only: change a sample entity, as if Home Assistant had pushed an update. */
+export function patchMockEntity(entityId: string, state: string) {
+  if (!MOCK || !latest?.[entityId]) return;
+  const now = new Date().toISOString();
+  publish({ ...latest, [entityId]: { ...latest[entityId], state, last_changed: now, last_updated: now } });
 }

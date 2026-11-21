@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { ScreenName } from "../App";
-import type { HubConfig, SceneConfig, StatusTileConfig } from "../config";
+import type { HubConfig, SceneConfig } from "../config";
 import { COPY } from "../copy";
 import { useCalendar } from "../ha/calendar";
-import { useDoor } from "../ha/door";
 import { runScene } from "../ha/scenes";
 import { useTodo } from "../ha/todo";
 import { useWeather } from "../ha/weather";
 import { todayView } from "../lib/events";
 import { formatClock, formatShortDate, formatTime } from "../lib/time";
 import { useNow } from "../lib/useNow";
-import { Alert, Cart, Check, ChevronRight, GarageClosed, GarageOpen, SceneIcon, WeatherIcon } from "../ui/icons";
+import { useEntities } from "../ha/entities";
+import { GarageTile } from "../ui/GarageTile";
+import { Alert, Cart, Check, ChevronRight, SceneIcon, WeatherIcon } from "../ui/icons";
 import { Screen } from "./Screen";
 import "./Home.css";
 
@@ -20,12 +21,15 @@ const MAX_ALL_DAY = 2;
 type TileState = "idle" | "running" | "done" | "error";
 
 function SceneTile({ scene }: { scene: SceneConfig }) {
+  const states = useEntities();
+  // Not in Home Assistant yet: a quiet, inactive tile instead of an error on tap.
+  const missing = states !== null && !states[scene.entity_id];
   const [state, setState] = useState<TileState>("idle");
   const timer = useRef<number>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const press = async () => {
-    if (state === "running") return;
+    if (state === "running" || missing) return;
     clearTimeout(timer.current);
     setState("running");
     try {
@@ -39,29 +43,17 @@ function SceneTile({ scene }: { scene: SceneConfig }) {
   };
 
   return (
-    <button type="button" className={`glass tile tile-${state}`} onClick={press}
-      aria-label={state === "error" ? `${scene.label} didn't run` : scene.label}>
+    <button type="button" className={`glass tile tile-${state} ${missing ? "tile-missing" : ""}`} onClick={press}
+      disabled={missing}
+      aria-label={missing ? `${scene.label}, not set up` : state === "error" ? `${scene.label} didn't run` : scene.label}>
       <span className="tile-icon">
         {state === "done" ? <Check size={32} strokeWidth={2} /> : state === "error" ? <Alert size={32} /> : <SceneIcon name={scene.icon} size={32} />}
       </span>
-      <span className="tile-label">{state === "error" ? "Didn't run" : scene.label}</span>
-    </button>
-  );
-}
-
-/** Read-only status, like Apple Home's accessory tiles: name, then state in lighter text. */
-function StatusTile({ tile }: { tile: StatusTileConfig }) {
-  const { state, text } = useDoor(tile.entity_id);
-  const open = state !== "closed" && state !== "unavailable";
-  return (
-    <div className={`glass tile tile-status ${open ? "tile-status-open" : ""}`} role="status"
-      aria-label={`${tile.label}, ${text}`}>
-      <span className="tile-icon">{open ? <GarageOpen size={32} /> : <GarageClosed size={32} />}</span>
       <span className="tile-text">
-        <span className="tile-label">{tile.label}</span>
-        <span className="tile-state">{text}</span>
+        <span className="tile-label">{state === "error" ? "Didn't run" : scene.label}</span>
+        {missing && <span className="tile-state">Not set up</span>}
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -147,7 +139,7 @@ export function Home({ config, go }: { config: HubConfig; go: (s: ScreenName) =>
           <div className="home-clock">{formatClock(now)}</div>
           <div className="tiles">
             {config.scenes.map((s) => <SceneTile key={s.id} scene={s} />)}
-            {config.statusTiles.map((t) => <StatusTile key={t.id} tile={t} />)}
+            {config.statusTiles.map((t) => <GarageTile key={t.id} tile={t} />)}
             <GroceriesTile count={unchecked} onOpen={() => go("groceries")} />
           </div>
         </div>

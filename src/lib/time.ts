@@ -54,3 +54,10 @@ export function haDateTime(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
+
+/** `since 4:12 PM` today, `since Thu 4:12 PM` this week, else `since Nov 12`. */
+export function formatSince(d: Date, now: Date): string {
+  if (sameDay(d, now)) return `since ${formatTime(d)}`;
+  if (now.getTime() - d.getTime() < 6 * 86_400_000) return `since ${WEEKDAYS[d.getDay()]} ${formatTime(d)}`;
+  return `since ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}

@@ -39,11 +39,21 @@ export const Alert = (p: P) => (
   <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v5" /><circle cx="12" cy="16.2" r=".6" fill="currentColor" /></Svg>
 );
 
+/** Closed: the door fills the opening (shaded, with panels). */
 export const GarageClosed = (p: P) => (
-  <Svg {...p}><path d="M3.5 20V9.5L12 4l8.5 5.5V20" /><path d="M6.5 20v-8h11v8" /><path d="M6.5 14.7h11M6.5 17.4h11" /></Svg>
+  <Svg {...p}>
+    <path d="M3.5 20V9.5L12 4l8.5 5.5V20" />
+    <rect x="6.5" y="12" width="11" height="8" fill="currentColor" fillOpacity=".22" />
+    <path d="M6.5 14.7h11M6.5 17.4h11" />
+  </Svg>
 );
+/** Open: the door is rolled up at the top and the opening below is empty. */
 export const GarageOpen = (p: P) => (
-  <Svg {...p}><path d="M3.5 20V9.5L12 4l8.5 5.5V20" /><path d="M6.5 20v-8h11v8" /><path d="M6.5 14.2h11" /></Svg>
+  <Svg {...p}>
+    <path d="M3.5 20V9.5L12 4l8.5 5.5V20" />
+    <path d="M6.5 20v-8M17.5 20v-8" />
+    <rect x="6.5" y="12" width="11" height="2.4" fill="currentColor" />
+  </Svg>
 );
 
 /** Scene tile icons by config name. Unknown names fall back to the sparkle. */

@@ -47,3 +47,12 @@ describe("dates", () => {
     expect(haDateTime(new Date(2026, 10, 20, 7, 5, 9))).toBe("2026-11-20 07:05:09");
   });
 });
+
+import { formatSince } from "./time";
+
+describe("formatSince", () => {
+  const now = new Date(2026, 10, 21, 18, 0);
+  it("shows the time today", () => expect(formatSince(new Date(2026, 10, 21, 16, 12), now)).toBe("since 4:12 PM"));
+  it("shows the weekday this week", () => expect(formatSince(new Date(2026, 10, 19, 7, 5), now)).toBe("since Thu 7:05 AM"));
+  it("shows the date when older", () => expect(formatSince(new Date(2026, 10, 2, 9, 0), now)).toBe("since Nov 2"));
+});
