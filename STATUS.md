@@ -57,8 +57,11 @@ to Home Assistant.
 - Home shows at most 2 all-day and 4 timed events, then `+N more`.
 - This week lists only days that have events (from "Real data only" in the spec).
 - Adding an item that is already on the list and unchecked is skipped.
-- Tiles never change color or fade. The only feedback on any button is a quick press-in that
-  springs back with a small bounce.
+- Tiles never change color. Buttons press in (tiles to 0.96) and spring back. Morning and Good Night
+  have their own full-screen moments (sunrise glow; dusk, dimming and stars) once the call is accepted,
+  pulse gently while Home Assistant reports the script running, then say "Good morning" / "Good night".
+- Status bar: `index.html` uses `black-translucent` (gradient behind the bar, soft wash for the text);
+  `status-default.html` ("Home B") uses `default` with `theme-color` #F3EBDF. Add both to compare.
 - The garage tile shows the live state first. A tap only opens "Open the garage?" / "Close the garage?";
   nothing moves without the second tap. No commands while the door is moving, offline, or still
   "Sending…". An unanswered confirmation closes itself after 30 seconds.

@@ -5,7 +5,7 @@
   background: rgba(244, 238, 228, .45);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  animation: dim-in 240ms ease both;
+  animation: dim-in 260ms ease both;
 }
 .sheet {
   position: relative;
@@ -20,10 +20,16 @@
   /* Own compositing layer so iPad Safari draws the blur reliably. */
   transform: translateZ(0);
   isolation: isolate;
-  animation: sheet-in 320ms cubic-bezier(.2, .8, .2, 1) both;
+  /* Springs in from slightly below: quick, with a little overshoot. */
+  animation: sheet-in 360ms cubic-bezier(.2, 1.25, .35, 1) both;
 }
 @keyframes dim-in { from { opacity: 0; } }
-@keyframes sheet-in { from { opacity: 0; transform: translateY(18px) scale(.98); } }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(28px) scale(.95); } }
+@keyframes dim-out { to { opacity: 0; } }
+@keyframes sheet-out { to { opacity: 0; transform: translateY(20px) scale(.96); } }
+.sheet-leaving { pointer-events: none; }
+.sheet-leaving .sheet-dim { animation: dim-out 240ms ease forwards; }
+.sheet-leaving .sheet { animation: sheet-out 240ms cubic-bezier(.4, 0, 1, 1) forwards; }
 
 .sheet-status { display: flex; align-items: center; gap: 18px; min-height: 56px; }
 .sheet-label { font: 600 17px/1 var(--font-sans); color: var(--ink-2); }
@@ -46,6 +52,7 @@
   color: var(--ink-badge);
   height: 40px;
   border-radius: 20px;
+  animation: chip-in 380ms cubic-bezier(.22, 1.35, .36, 1) both;
   box-sizing: border-box;
   padding: 0 16px;
   display: flex;
@@ -63,5 +70,17 @@
 .sheet-error { display: flex; flex-direction: column; gap: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .sheet, .sheet-dim, .wave-pulse span { animation: none; }
+  .sheet { animation: fade-in 160ms ease both; }
+  .sheet-leaving .sheet, .sheet-leaving .sheet-dim { animation: dim-out 120ms ease forwards; }
+  .wave-pulse span { animation: none; }
+}
+@keyframes fade-in { from { opacity: 0; } }
+
+/* Chips pop in one after another; a tapped chip shrinks and fades away. */
+@keyframes chip-in { from { opacity: 0; transform: scale(.6) translateY(6px); } }
+.chip-leaving { animation: chip-out 200ms cubic-bezier(.4, 0, 1, 1) forwards; pointer-events: none; }
+@keyframes chip-out { to { opacity: 0; transform: scale(.7); } }
+@media (prefers-reduced-motion: reduce) {
+  .chip { animation: fade-in 160ms ease both; }
+  .chip-leaving { animation: dim-out 100ms ease forwards; }
 }

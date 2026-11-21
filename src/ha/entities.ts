@@ -63,3 +63,18 @@ export function patchMockEntity(entityId: string, state: string) {
   const now = new Date().toISOString();
   publish({ ...latest, [entityId]: { ...latest[entityId], state, last_changed: now, last_updated: now } });
 }
+
+/** Call `l` with every update from Home Assistant until the returned function is called. */
+export function watchEntities(l: Listener): () => void {
+  listeners.add(l);
+  start();
+  if (latest) l(latest);
+  return () => {
+    listeners.delete(l);
+  };
+}
+
+/** The most recent states, or null before the first update. */
+export function currentEntities(): HassEntities | null {
+  return latest;
+}

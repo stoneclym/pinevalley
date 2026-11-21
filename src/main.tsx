@@ -23,6 +23,20 @@ function start() {
   // iOS Safari only applies :active (the press-in on buttons) when a touchstart listener exists.
   document.addEventListener("touchstart", () => {}, { passive: true });
 
+  // Full-bleed background layers behind the canvas (and the status bar wash for option A).
+  for (const cls of ["bg-wood", "bg-wash", "bg-wood-calm", "bg-wash-calm", "status-wash"]) {
+    const el = document.createElement("div");
+    el.className = `bg-layer ${cls}`;
+    el.setAttribute("aria-hidden", "true");
+    document.body.insertBefore(el, document.getElementById("root"));
+  }
+  const bar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute("content");
+  const standalone =
+    (navigator as Navigator & { standalone?: boolean }).standalone === true ||
+    window.matchMedia("(display-mode: standalone)").matches;
+  // The wash only matters when the page runs under a translucent status bar (the installed app).
+  if (bar === "black-translucent" && standalone) document.documentElement.classList.add("status-translucent");
+
   // Draw the 1180 × 820 design canvas scaled to fit the window. On the iPad Air in the
   // installed app the scale is 1; in a browser tab or on a phone it shrinks to fit.
   const fit = () => {

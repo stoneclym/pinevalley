@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { VoiceConfig } from "../config";
 import { CATEGORIES } from "../lib/categorize";
 import { createStore, useStore } from "../lib/store";
+import { useExit } from "../lib/useExit";
 import { Stop } from "../ui/icons";
 import { type Item, parseAudio, parseGroceries, voiceConfigured } from "./parse";
 import { type Recorder, startRecording } from "./recorder";
@@ -54,6 +55,7 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
   const [adding, setAdding] = useState(false);
   const recorder = useRef<Recorder | null>(null);
   const alive = useRef(true);
+  const { leaving, leave } = useExit();
 
   const listen = (rec: Promise<Recorder>) => {
     setState({ s: "listening" });
@@ -111,7 +113,7 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
 
   const cancel = () => {
     recorder.current?.cancel();
-    onClose();
+    leave(onClose);
   };
 
   const add = async (items: Item[]) => {
@@ -119,7 +121,7 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
     try {
       await onAdd(items); // names with the categories shown here, so the list matches
 
-      onClose();
+      leave(onClose);
     } catch (err) {
       console.error("add items failed", err);
       setAdding(false);
@@ -127,13 +129,32 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
     }
   };
 
-  const removeChip = (idx: number) => {
-    if (state.s !== "review") return;
-    setState({ ...state, items: state.items.filter((_, i) => i !== idx) });
+  // Chips that were tapped play a short exit before they are removed.
+  const [removing, setRemoving] = useState<Set<Item>>(new Set());
+  // Stable keys per chip, so removing one doesn't re-animate the rest.
+  const ids = useRef(new WeakMap<Item, number>());
+  const nextId = useRef(0);
+  const idOf = (it: Item) => {
+    if (!ids.current.has(it)) ids.current.set(it, nextId.current++);
+    return ids.current.get(it)!;
+  };
+  const removeChip = (it: Item) => {
+    if (state.s !== "review" || removing.has(it)) return;
+    setRemoving((r) => new Set(r).add(it));
+    window.setTimeout(() => {
+      setState((st) => (st.s === "review" ? { ...st, items: st.items.filter((x) => x !== it) } : st));
+      setRemoving((r) => {
+        const n = new Set(r);
+        n.delete(it);
+        return n;
+      });
+    }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 100 : 200);
   };
 
+  const kept = state.s === "review" ? state.items.filter((it) => !removing.has(it)) : [];
+
   return (
-    <div className="sheet-layer" role="presentation">
+    <div className={`sheet-layer ${leaving ? "sheet-leaving" : ""}`} role="presentation">
       <div className="sheet-dim" />
       <div className="glass sheet" role="dialog" aria-modal="true" aria-label="Add items">
         {(state.s === "listening" || state.s === "working") && (
@@ -165,8 +186,9 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
                   <span className="caps sheet-cat">{c}</span>
                   <div className="sheet-chips">
                     {state.items.map((it, idx) => it.category === c && (
-                      <button key={idx} type="button" className="chip" onClick={() => removeChip(idx)}
-                        aria-label={`Remove ${it.name}`}>
+                      <button key={idOf(it)} type="button" className={`chip ${removing.has(it) ? "chip-leaving" : ""}`}
+                        style={{ animationDelay: removing.has(it) ? "0ms" : `${idx * 45}ms` }}
+                        onClick={() => removeChip(it)} aria-label={`Remove ${it.name}`}>
                         {it.name}
                       </button>
                     ))}
@@ -177,11 +199,12 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
             </div>
             <div className="sheet-actions">
               <span className="sheet-hint">Tap an item to remove it</span>
+              {/* counts and adds only chips that aren't on their way out */}
               <div className="sheet-buttons">
                 <button type="button" className="glass pill" onClick={cancel}>Cancel</button>
-                <button type="button" className="white-glass pill pill-primary" disabled={!state.items.length || adding}
-                  onClick={() => add(state.items)}>
-                  {state.items.length === 1 ? "Add 1 Item" : `Add ${state.items.length} Items`}
+                <button type="button" className="white-glass pill pill-primary" disabled={!kept.length || adding}
+                  onClick={() => add(kept)}>
+                  {kept.length === 1 ? "Add 1 Item" : `Add ${kept.length} Items`}
                 </button>
               </div>
             </div>

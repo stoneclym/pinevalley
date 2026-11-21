@@ -39,6 +39,7 @@
 .g-card-title { margin: 0 0 4px; padding-left: 6px; }
 .g-row {
   width: 100%;
+  overflow: hidden;
   height: 60px;
   padding: 0 6px;
   display: flex;
@@ -54,3 +55,18 @@
 .g-completed-head h2 { margin: 0; }
 .g-clear { height: 40px; padding: 0 18px; border-radius: 20px; font: 600 16px/1 var(--font-sans); color: var(--ink); }
 .g-empty { margin: 8px 6px; }
+
+/* Rows animate in when added and slide out (collapsing) when checked off or removed;
+   cards fade out when they empty. Other cards then reflow with a spring (FLIP, motion.ts). */
+.g-row-new { animation: row-in 340ms cubic-bezier(.22, 1.2, .36, 1) both; }
+.g-row-leaving { animation: row-out 280ms cubic-bezier(.4, 0, .2, 1) forwards; pointer-events: none; }
+.g-card-leaving { animation: card-out 280ms cubic-bezier(.4, 0, .2, 1) forwards; pointer-events: none; }
+@keyframes row-in { from { opacity: 0; height: 0; transform: translateY(-8px) scale(.96); } to { height: 60px; } }
+@keyframes row-out { to { opacity: 0; height: 0; transform: translateX(36px); } }
+@keyframes card-out { to { opacity: 0; transform: scale(.94); } }
+@media (prefers-reduced-motion: reduce) {
+  .g-row-new { animation: fade-in 160ms ease both; }
+  .g-row-leaving, .g-card-leaving { animation: fade-out 140ms ease forwards; }
+}
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }

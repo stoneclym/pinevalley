@@ -22,7 +22,7 @@
 .cal-bar { width: 4px; align-self: stretch; border-radius: 2px; background: var(--ink); opacity: .35; flex: none; }
 .cal-event-next .cal-bar { background: var(--ink-badge); opacity: .85; }
 .cal-event-text { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
-.cal-event-title { font: 600 26px/1.1 var(--font-sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-event-title { font: 600 26px/1.06 var(--font-sans); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: break-word; }
 .cal-event-meta { font: 500 18px/1.2 var(--font-sans); color: var(--ink-2); }
 .cal-event-next .cal-event-title { color: var(--ink-badge); }
 .cal-event-next .cal-event-meta, .cal-next-label { color: #625a53; }

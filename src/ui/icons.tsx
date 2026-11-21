@@ -15,6 +15,21 @@ function Svg({ size = 24, color = "currentColor", strokeWidth = 1.7, children }:
   );
 }
 
+/** Sunrise with a sun that rises above the horizon when `rising` is set (see Home.css). */
+export const SunriseRising = (p: P) => (
+  <Svg {...p}>
+    <defs>
+      <clipPath id="above-horizon"><rect x="0" y="0" width="24" height="18.5" /></clipPath>
+    </defs>
+    <g clipPath="url(#above-horizon)">
+      <g className="sun-rise">
+        <path d="M7 18.5a5 5 0 0 1 10 0" />
+        <path className="sun-rays" d="M12 5v3.5M5.3 10.3l1.8 1.6M18.7 10.3l-1.8 1.6" />
+      </g>
+    </g>
+    <path d="M3.5 18.5h17" />
+  </Svg>
+);
 export const Sunrise = (p: P) => (
   <Svg {...p}><path d="M3.5 18.5h17" /><path d="M7 18.5a5 5 0 0 1 10 0" /><path d="M12 5v3.5M5.3 10.3l1.8 1.6M18.7 10.3l-1.8 1.6" /></Svg>
 );

@@ -102,8 +102,9 @@
 }
 .tl-time { display: flex; align-items: center; font: 600 16px/1.2 var(--font-sans); color: var(--ink-2); }
 .tl-next-label { color: var(--ink); margin-left: 10px; }
-.tl-title { font: 500 22px/1.1 var(--font-sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tl-next .tl-title { font: 600 28px/1.1 var(--font-sans); }
+/* Titles wrap to 3 lines before an ellipsis; the panel has the vertical room. */
+.tl-title { font: 500 22px/1.08 var(--font-sans); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: break-word; }
+.tl-next .tl-title { font: 600 28px/1.05 var(--font-sans); }
 .tl-location { font: 500 17px/1.1 var(--font-sans); color: var(--ink-2); }
 .today-more { margin: 24px 0 0 36px; font: 600 16px/1 var(--font-sans); color: var(--ink-2); }
 .today-empty { margin-top: 22px; }
@@ -112,3 +113,35 @@
 .tile-text { display: flex; flex-direction: column; gap: 4px; }
 .tile-state { font: 500 15px/1.1 var(--font-sans); color: var(--ink-2); white-space: nowrap; }
 .tile-missing { cursor: default; }
+
+/* Scene tiles: the tile itself never changes color; the icon carries the moment. */
+.scene-tile:disabled { cursor: default; }
+/* Morning: the sun rises above the horizon, then breathes gently while the script runs. */
+.scene-morning .sun-rise { transform: translateY(0); }
+.scene-morning.tile-starting .sun-rise, .scene-morning.tile-running .sun-rise {
+  animation: sun-rise 1200ms cubic-bezier(.2, .9, .3, 1) both;
+}
+.scene-morning.tile-running .tile-icon { animation: breathe 1800ms ease-in-out 1200ms infinite; }
+@keyframes sun-rise { from { transform: translateY(8px); } to { transform: translateY(0); } }
+/* Good Night: the moon glows, softly pulsing while the script runs. */
+.scene-night.tile-starting .tile-icon, .scene-night.tile-running .tile-icon {
+  animation: moon-glow 1800ms ease-in-out infinite;
+}
+@keyframes moon-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 232, 170, .5)); }
+  50% { filter: drop-shadow(0 0 9px rgba(255, 226, 150, .95)); }
+}
+.scene-other.tile-running .tile-icon { animation: breathe 1800ms ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+/* Done: the check pops in. Failure: the icon nods side to side. */
+.tile-done .tile-icon { animation: pop-in 380ms cubic-bezier(.22, 1.4, .36, 1) both; }
+@keyframes pop-in { from { transform: scale(.5); opacity: 0; } }
+.tile-error .tile-icon { animation: nod 560ms ease-in-out both; }
+@keyframes nod {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); } 40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); } 80% { transform: translateX(2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-tile .tile-icon, .scene-morning .sun-rise { animation: none !important; }
+}

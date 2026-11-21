@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { StatusTileConfig } from "../config";
 import { commandDoor, type DoorState, useDoor } from "../ha/door";
 import { useConnectionStatus } from "../ha/useStatus";
+import { useExit } from "../lib/useExit";
 import { GarageClosed, GarageOpen } from "./icons";
 import "../voice/VoiceSheet.css"; // shared glass sheet styles
 import "./GarageTile.css";
@@ -21,9 +22,10 @@ const SHEET_TIMEOUT_MS = 30_000;
 
 type SheetState = "confirm" | "sending" | "error";
 
-function GarageSheet({ action, onConfirm, onClose, sheet }: {
+function GarageSheet({ action, onConfirm, onClose, sheet, leaving }: {
   action: "open" | "close";
   sheet: SheetState;
+  leaving: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }) {
@@ -35,7 +37,7 @@ function GarageSheet({ action, onConfirm, onClose, sheet }: {
 
   const verb = action === "open" ? "Open" : "Close";
   return (
-    <div className="sheet-layer" role="presentation">
+    <div className={`sheet-layer ${leaving ? "sheet-leaving" : ""}`} role="presentation">
       <div className="sheet-dim" onClick={sheet === "sending" ? undefined : onClose} />
       <div className="glass sheet garage-sheet" role="alertdialog" aria-modal="true" aria-label={`${verb} the garage`}>
         {sheet === "error" ? (
@@ -82,6 +84,15 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
   const [sheet, setSheet] = useState<{ action: "open" | "close"; state: SheetState } | null>(null);
   const [sending, setSending] = useState(false); // waiting for the door to report movement
   const sentFrom = useRef<DoorState | null>(null);
+  const exit = useExit();
+  // Close with the exit animation; the sheet stays mounted until it finishes.
+  const closeSheet = () => {
+    if (exit.leaving) return;
+    exit.leave(() => {
+      setSheet(null);
+      exit.reset();
+    });
+  };
 
   useEffect(() => onSheetChange?.(sheet !== null), [sheet, onSheetChange]);
 
@@ -99,7 +110,7 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
   useEffect(() => {
     if (sheet?.state !== "confirm") return;
     const valid = (sheet.action === "open" && door.state === "closed") || (sheet.action === "close" && door.state === "open");
-    if (!valid) setSheet(null);
+    if (!valid) closeSheet();
   }, [door.state, sheet]);
 
   const moving = door.state === "opening" || door.state === "closing";
@@ -120,7 +131,7 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
       sentFrom.current = door.state;
       await commandDoor(tile.entity_id, action);
       setSending(door.state === sentFrom.current);
-      setSheet(null);
+      closeSheet();
     } catch (err) {
       console.error(`cover.${action}_cover failed`, err);
       setSheet({ action, state: "error" });
@@ -144,7 +155,8 @@ export function GarageTile({ tile, onSheetChange }: { tile: StatusTileConfig; on
       </button>
       {sheet && (
         <GarageSheet action={sheet.action} sheet={sheet.state} onConfirm={confirm}
-          onClose={() => setSheet((s) => (s?.state === "sending" ? s : null))} />
+          leaving={exit.leaving}
+          onClose={() => { if (sheet.state !== "sending") closeSheet(); }} />
       )}
     </>
   );

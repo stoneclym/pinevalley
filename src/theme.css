@@ -51,32 +51,12 @@ input, textarea, .selectable {
 button { font: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
 
-/* Screen background: blurred warm wood layer under a cream wash, as designed. */
+/* Screens are transparent: the background lives on full-screen layers behind the canvas. */
 .screen {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-}
-.screen-bg, .screen-wash { position: absolute; pointer-events: none; }
-.screen-bg {
-  inset: -40px;
-  filter: blur(10px);
-  background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 5px, rgba(120,76,36,.035) 5px 6px, rgba(255,255,255,0) 6px 13px),
-    repeating-linear-gradient(90deg, transparent 0 118px, rgba(105,66,30,.06) 118px 120px),
-    linear-gradient(180deg, rgba(214,176,132,.45), rgba(196,152,108,.5)),
-    #e6cda8;
-}
-.screen-wash {
-  inset: 0;
-  background: linear-gradient(100deg,
-    rgba(244,238,228,.940) 0%, rgba(244,238,228,.930) 5%, rgba(244,238,228,.900) 10%,
-    rgba(244,238,228,.855) 15%, rgba(244,238,228,.797) 20%, rgba(244,238,228,.730) 25%,
-    rgba(244,238,228,.657) 30%, rgba(244,238,228,.580) 35%, rgba(244,238,228,.503) 40%,
-    rgba(244,238,228,.430) 45%, rgba(244,238,228,.363) 50%, rgba(244,238,228,.305) 55%,
-    rgba(244,238,228,.260) 60%, rgba(244,238,228,.230) 65%, rgba(244,238,228,.220) 70%,
-    rgba(244,238,228,.220) 100%);
 }
 .screen-content { position: relative; height: 100%; box-sizing: border-box; }
 
@@ -105,22 +85,6 @@ a { color: inherit; text-decoration: none; }
   height: 7px;
   border-radius: 50%;
   background: #b0662f;
-}
-
-/* Calendar and Groceries: the design's calmer background. */
-.screen-calm .screen-bg {
-  inset: -80px;
-  filter: blur(40px);
-  background:
-    repeating-linear-gradient(90deg, transparent 0 118px, rgba(105,66,30,.06) 118px 120px),
-    linear-gradient(180deg, rgba(214,176,132,.45), rgba(196,152,108,.5)),
-    #e6cda8;
-}
-.screen-calm .screen-wash {
-  background: linear-gradient(100deg,
-    rgba(244,238,228,.860) 0%, rgba(244,238,228,.844) 14.3%, rgba(244,238,228,.804) 28.6%,
-    rgba(244,238,228,.750) 42.9%, rgba(244,238,228,.690) 57.1%, rgba(244,238,228,.636) 71.4%,
-    rgba(244,238,228,.596) 85.7%, rgba(244,238,228,.580) 100%);
 }
 
 /* Bright white surface: badges, chips, the next-event card, the mic and primary buttons. */
@@ -153,6 +117,7 @@ button:not(:disabled):active {
   transform: scale(.92);
   transition: transform 90ms cubic-bezier(.3, 0, .6, 1);
 }
+.tile:not(:disabled):active { transform: scale(.96); }
 .today:not(:disabled):active,
 .g-row:not(:disabled):active,
 .addbar:not(:disabled):active { transform: scale(.975); }
@@ -195,16 +160,76 @@ button:disabled { cursor: default; }
 .to-home { animation: enter-home 320ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes enter-detail { from { opacity: 0; transform: scale(1.025); } to { opacity: 1; transform: none; } }
 @keyframes enter-home { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+/* Tile-to-screen morph (View Transitions API): springy and quick. */
+::view-transition-group(hero) { animation-duration: 440ms; animation-timing-function: cubic-bezier(.22, 1.15, .32, 1); }
+::view-transition-old(hero), ::view-transition-new(hero) { animation-duration: 260ms; animation-timing-function: ease; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 260ms; }
+
 @media (prefers-reduced-motion: reduce) {
-  .to-detail, .to-home { animation: none; }
+  .to-detail, .to-home { animation: fade-screen 180ms ease both; }
   button, button:active { transition: none; transform: none !important; }
 }
 
+/* Full-bleed background: fixed layers on the whole screen (under the status bar and home
+   indicator too), outside the scaled canvas. Home uses the warmer wood-and-cream mix; Calendar
+   and Groceries crossfade to the design's calmer version. Safe-area insets are applied only as
+   padding on content, never here. */
+body { background: #efe4d3; }
+.bg-layer { position: fixed; pointer-events: none; z-index: 0; transition: opacity 420ms ease; }
+.bg-wood {
+  inset: -40px;
+  filter: blur(10px);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 5px, rgba(120,76,36,.035) 5px 6px, rgba(255,255,255,0) 6px 13px),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(105,66,30,.06) 118px 120px),
+    linear-gradient(180deg, rgba(214,176,132,.45), rgba(196,152,108,.5)),
+    #e6cda8;
+}
+.bg-wash {
+  inset: 0;
+  background: linear-gradient(100deg,
+    rgba(244,238,228,.940) 0%, rgba(244,238,228,.930) 5%, rgba(244,238,228,.900) 10%,
+    rgba(244,238,228,.855) 15%, rgba(244,238,228,.797) 20%, rgba(244,238,228,.730) 25%,
+    rgba(244,238,228,.657) 30%, rgba(244,238,228,.580) 35%, rgba(244,238,228,.503) 40%,
+    rgba(244,238,228,.430) 45%, rgba(244,238,228,.363) 50%, rgba(244,238,228,.305) 55%,
+    rgba(244,238,228,.260) 60%, rgba(244,238,228,.230) 65%, rgba(244,238,228,.220) 70%,
+    rgba(244,238,228,.220) 100%);
+}
+.bg-wood-calm {
+  inset: -80px;
+  filter: blur(40px);
+  opacity: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(105,66,30,.06) 118px 120px),
+    linear-gradient(180deg, rgba(214,176,132,.45), rgba(196,152,108,.5)),
+    #e6cda8;
+}
+.bg-wash-calm {
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(100deg,
+    rgba(244,238,228,.860) 0%, rgba(244,238,228,.844) 14.3%, rgba(244,238,228,.804) 28.6%,
+    rgba(244,238,228,.750) 42.9%, rgba(244,238,228,.690) 57.1%, rgba(244,238,228,.636) 71.4%,
+    rgba(244,238,228,.596) 85.7%, rgba(244,238,228,.580) 100%);
+}
+body[data-calm] .bg-wood, body[data-calm] .bg-wash { opacity: 0; }
+body[data-calm] .bg-wood-calm, body[data-calm] .bg-wash-calm { opacity: 1; }
+
+/* black-translucent status bar: a soft darker wash keeps the white status text readable.
+   Drawn over the background only, never over content. */
+.status-wash {
+  display: none;
+  top: 0; left: 0; right: 0;
+  height: calc(env(safe-area-inset-top, 0px) + 22px);
+  background: linear-gradient(180deg, rgba(43,33,24,.34), rgba(43,33,24,0));
+}
+html.status-translucent .status-wash { display: block; }
+
 /* The 1180 × 820 design canvas, scaled to fit and centred (scale 1 on the iPad Air).
    A transformed #root also becomes the frame for fixed-position layers (sheet, transitions). */
-body { background: #e2cfb2; } /* fills any letterbox around the scaled canvas */
 #root {
   position: absolute;
+  z-index: 1;
   left: 50%;
   top: 50%;
   width: 1180px;
@@ -225,3 +250,4 @@ body { background: #e2cfb2; } /* fills any letterbox around the scaled canvas */
   color: #f4eee4;
   pointer-events: none;
 }
+@keyframes fade-screen { from { opacity: 0; } }

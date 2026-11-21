@@ -6,7 +6,13 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: "./",
   plugins: [react()],
-  build: { outDir: "dist", target: "safari15", assetsInlineLimit: 0 },
+  build: {
+    outDir: "dist",
+    target: "safari15",
+    assetsInlineLimit: 0,
+    // Two entry pages, identical except for the status bar style, so both can be compared on the iPad.
+    rollupOptions: { input: { main: "index.html", statusDefault: "status-default.html" } },
+  },
   server: { host: true },
   test: { environment: "node" },
 });
