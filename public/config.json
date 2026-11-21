@@ -2,9 +2,9 @@
   "haUrl": "",
   "room": "scullery",
   "autoReturnSeconds": 60,
-  "weather": "weather.home",
+  "weather": "weather.forecast_home",
   "calendars": [
-    "calendar.REPLACE_FAMILY"
+    "calendar.family_calendar"
   ],
   "groceryList": "todo.shopping_list",
   "voice": {
