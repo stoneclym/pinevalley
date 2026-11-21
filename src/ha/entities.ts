@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { type HassEntities, subscribeEntities } from "home-assistant-js-websocket";
 import { getConnection, MOCK } from "./connection";
-import { MOCK_ENTITIES } from "./mock";
+import { mockEntities } from "./mock";
 
 type Listener = (e: HassEntities) => void;
 
 // One shared subscription for the whole app; the last known states stay on screen
 // while HA is unreachable.
-let latest: HassEntities | null = MOCK ? MOCK_ENTITIES : null;
+// `import.meta.env.DEV &&` lets the production build drop the mock data entirely.
+let latest: HassEntities | null = import.meta.env.DEV && MOCK ? mockEntities() : null;
 const listeners = new Set<Listener>();
 let started = false;
 

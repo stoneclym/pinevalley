@@ -9,7 +9,8 @@ import "./Home.css";
 // type and spacing. Tiles and the Today panel arrive in Phase 2.
 
 function CloudIcon() {
-  // Taken from the design. Per-condition icons are a Phase 2 task.
+  // Taken from the design. The other conditions get their own icons in Phase 2;
+  // until then no icon is shown for them rather than a wrong one.
   return (
     <svg aria-hidden="true" width="38" height="38" viewBox="0 0 40 40">
       <g transform="translate(0 2)" fill="currentColor">
@@ -32,9 +33,11 @@ export function Home({ config }: { config: HubConfig }) {
           <span>{formatShortDate(now)}</span>
           {weather && weather.temperature !== null && (
             <span className="home-weather">
-              <span className="home-weather-icon">
-                <CloudIcon />
-              </span>
+              {weather.condition === "cloudy" && (
+                <span className="home-weather-icon">
+                  <CloudIcon />
+                </span>
+              )}
               <span>{weather.temperature}°</span>
             </span>
           )}

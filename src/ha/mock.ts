@@ -8,7 +8,8 @@ function entity(entity_id: string, state: string, attributes: Record<string, unk
 }
 
 /** Fake entity states for design work without a live HA. */
-export const MOCK_ENTITIES: HassEntities = Object.fromEntries(
+export function mockEntities(): HassEntities {
+  return Object.fromEntries(
   [
     entity("weather.home", "cloudy", {
       friendly_name: "Home",
@@ -24,4 +25,5 @@ export const MOCK_ENTITIES: HassEntities = Object.fromEntries(
     entity("script.leaving_home", "off", { friendly_name: "Leaving Home" }),
     entity("light.kitchen_lamp", "on", { friendly_name: "Kitchen Lamp" }),
   ].map((e) => [e.entity_id, e]),
-);
+  );
+}

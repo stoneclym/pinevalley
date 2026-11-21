@@ -12,14 +12,27 @@ A wall-friendly iPad app for the whole family. It sits on a stand in the sculler
 - It shows a very large clock, the date and current weather, today's calendar events, three big tiles, and runs scenes with one tap.
 - Tapping the calendar opens an expanded Calendar view. Tapping Groceries opens a shared grocery list.
 - Everything lives in one app. Nobody leaves it to use another app.
-- It is a PWA served from Home Assistant (HA) and talks to HA over its WebSocket API.
+- Groceries can be added by voice: tap the mic, speak, and the spoken list is sorted into categories. There is no keyboard in that flow.
+- It is a PWA served from Home Assistant (HA) over HTTPS and talks to HA over its WebSocket API.
+- It is a self-contained project. It has its own Supabase project and its own API keys, shared with nothing else.
+
+## Start here (read first)
+
+Greyson will give you this file, a GitHub repo, and a zip of his Claude Design export.
+
+1. Put the unzipped export in `/design` in the repo. It is a **visual reference only**: layout, spacing, colors, type, glass styling, icons. Read the tokens from it. Do not copy its sample content.
+2. Your first task is **phase 0 in section 10** (the microphone test), not the full app. Then continue phase by phase.
+3. **Stop at the end of every phase.** Show screenshots (or tell Greyson what to check on the iPad), list anything unverified, and wait for his go-ahead before starting the next phase.
+4. Anything in section 9 that Greyson must do himself (HTTPS, Supabase, API keys, HA settings), say so plainly and wait. Do not fake it with placeholders.
 
 ## 2. Decisions that are locked
 
 - Device: iPad Air, 4th generation, 10.9 inch, **landscape only**, on a stand, always plugged in. Design canvas about **1180 x 820 points**.
 - **Light theme only.** No dark mode, no sunset switching, no `prefers-color-scheme` branches. Set `color-scheme: light` (CSS and meta tag) so iPadOS dark appearance cannot recolor form controls or scrollbars.
 - Installed through Safari's Add to Home Screen, runs full screen (standalone).
-- Served from HA's own web folder over plain HTTP on the home network. See section 12, risk 1: the microphone needs HTTPS, which conflicts with this.
+- Served from HA's own web folder over **HTTPS from day one**, because the microphone only works on HTTPS pages. No paid subscription. Use HA's free Let's Encrypt add-on with a DNS challenge and a name that points to HA's local address, so nothing is exposed to the internet (section 9).
+- **Voice is part of the first build**, not a later add-on. Greyson was firm about this. The design is record, then transcribe (section 7), never the iPadOS keyboard dictation key.
+- **Separate backend.** A new Supabase project used only by this app, with its own OpenAI and Anthropic API keys. No database tables are needed.
 - Calendar source: Apple Calendar through HA's CalDAV integration.
 - Groceries source: an HA to-do list (the Shopping List integration), synced to Apple Reminders by the HA Companion app's Reminders Sync.
 - Scenes: HA scenes or scripts. The app only triggers them.
@@ -45,6 +58,17 @@ Extract exact values (colors, fonts, radii, shadows, blur) from the Claude Desig
 - Glass surfaces: warm cream fill at partial opacity, thin white edge, soft shadow.
 - Type: a high-contrast serif for the clock, screen titles ("Today", "Calendar", "Groceries") and the voice transcript; a clean sans for everything else.
 - Icons: simple outline icons (sunrise, moon, cart, cloud, chevron, mic, sparkle). SF Symbols are not licensed for the web, so use an open set that looks close, such as Lucide or Phosphor.
+
+### Real data only (no placeholder content)
+
+The Claude Design export contains sample content: events, grocery items, a badge count, a weather reading, a transcript. **None of it ships.** Every value on screen comes from Home Assistant or the voice function.
+
+- The Today panel shows only real calendar events. With none, it shows no event rows, only the panel title and one quiet line such as `Nothing planned today` in the secondary text style. Greyson may remove even that line; keep it a single constant so it is easy to change.
+- The grocery list starts empty. No category cards appear until an item exists in that category. With no items, show only the add bar and one quiet line such as `Nothing on the list`. The Completed section is hidden until something is checked.
+- The Home badge shows the unchecked count and is **hidden at zero**.
+- The This week panel shows only days that have events, or the same quiet empty line.
+- The date, time and weather are live. If weather is unavailable, hide that part of the date line rather than showing a stale value.
+- Sample data exists only in **mock mode**, switched on explicitly (for example `?mock=1` in development). It must never be the default, never be in the production build's default path, and never be written to HA. Before finishing each phase, check that the real build with no events and an empty list looks clean and intentional.
 
 ## 4. Screens
 
@@ -108,12 +132,15 @@ Behavior:
 
 Opened by the microphone button. A glass sheet centered over the Grocery screen, which blurs and dims behind it.
 
-- Top: an animated waveform and the word `Listening`.
-- Large serif transcript in quotes, updating live: `"We need avocados, a couple limes, taco shells, and paper towels"`.
-- A thin divider, then **parsed items** grouped by category: a small tracked caps category label on the left and white pill chips for each item (`Avocados`, `2 limes` under PRODUCE; `Taco shells` under PANTRY; `Paper towels` under HOUSEHOLD). The chips update as the transcript grows.
-- Bottom: a round glass **stop** button (small square icon) at left; at right a `Cancel` pill and a white primary pill `Add 4 Items` (the number is the chip count).
+Three states, in order:
 
-Behavior: Stop ends listening but keeps the sheet open. `Add N Items` adds every chip to the list and closes the sheet. `Cancel` discards everything. The sheet must work with typed text as well as voice (see section 7).
+1. **Listening.** An animated waveform that follows the real microphone level, and the word `Listening`. A round glass **stop** button (small square icon) at left and a `Cancel` pill. Recording also stops by itself after about 2 seconds of silence, and hard-stops at 30 seconds.
+2. **Transcribing.** After stop, the waveform settles into a soft pulse and the label changes to `Transcribing`. This usually lasts one to three seconds. (The mockups do not show this state yet. Match the same glass style.)
+3. **Review.** The large serif transcript in quotes appears: `"We need avocados, a couple limes, taco shells, and paper towels"`. A thin divider, then **parsed items** grouped by category: a small tracked caps label on the left and white pill chips (`Avocados`, `2 limes` under PRODUCE; `Taco shells` under PANTRY; `Paper towels` under HOUSEHOLD). Bottom: `Cancel` and a white primary pill `Add 4 Items` (the number is the chip count). Chips can be tapped to remove one.
+
+The transcript and items do **not** stream while speaking. They appear together in the Review state.
+
+Behavior: `Add N Items` adds every chip to the list and closes the sheet. `Cancel` discards everything, including the recording. If transcription fails, show `Couldn't catch that` with `Try again` and `Cancel`; never fail silently. The same sheet also opens for typed input with several items (see section 7).
 
 ## 5. Navigation and behavior
 
@@ -127,11 +154,12 @@ Behavior: Stop ends listening but keeps the sheet open. `Add N Items` adds every
 
 ## 6. Architecture
 
-- Static single-page app, built to a folder that is copied into HA's `/config/www/home-hub/`. HA serves that folder at `/local/home-hub/`. Open `http://<ha-host>:8123/local/home-hub/` on the iPad and Add to Home Screen.
+- Static single-page app, built to a folder that is copied into HA's `/config/www/home-hub/`. HA serves that folder at `/local/home-hub/`. Open `https://<ha-name>:8123/local/home-hub/` on the iPad (the HTTPS name from section 9) and Add to Home Screen.
 - Files in `www` are served without login. Never put tokens, passwords or API keys in the bundle or in `config.json`. Entity IDs only.
 - One shared HA connection (WebSocket). Wrap it in small modules: `ha/connection`, `ha/weather`, `ha/calendar`, `ha/todo`, `ha/scenes`. Screens never call HA directly.
 - Per-iPad settings live in `config.json` next to `index.html` (section 8).
-- PWA files: web app manifest (`display: standalone`, name, icons) and Apple meta tags (`apple-mobile-web-app-capable`, `apple-touch-icon`). A service worker is not available over plain HTTP, so do not depend on one. The app does not need offline support, because it is useless without HA.
+- PWA files: web app manifest (`display: standalone`, name, icons) and Apple meta tags (`apple-mobile-web-app-capable`, `apple-touch-icon`). A service worker is possible over HTTPS but is not needed. The app does not need offline support, because it is useless without HA.
+- **Never change the URL hash or path to switch screens.** In an installed iPad web app, a hash change can make the microphone permission prompt appear again. Keep screen state in memory (a small state variable or history without URL changes). The hidden setup page (section 8) is the one exception and is not used on the wall iPad.
 
 ## 7. Home Assistant integration
 
@@ -175,13 +203,24 @@ Write a pluggable function `parseGroceries(text): Promise<Item[]>` where `Item =
 
 - **Version 1 (build this):** local rules. Strip lead-ins (`we need`, `get`, `add`, `buy`, `pick up`, `can you add`), split on commas and `and` / `also`, convert quantity words (`a couple` to 2, `a dozen` to 12), trim, capitalize, then categorize.
   Test case: `"We need avocados, a couple limes, taco shells, and paper towels"` must produce Avocados, 2 limes, Taco shells, Paper towels, with categories Produce, Produce, Pantry, Household.
-- **Version 2 (later):** an AI parser that can expand phrases like `stuff for tacos` into items. **Never put an API key in the browser.** Call a small server-side function, or an HA conversation agent if one is configured. Keep it behind the same `parseGroceries` interface, with Version 1 as the fallback if it fails.
+- **Version 2 (build this too, it powers voice):** the server function below. It accepts either text or audio and returns items. Keep it behind the same `parseGroceries` interface, with Version 1 as the fallback for typed text if the call fails. **Never put an OpenAI or Anthropic key in the browser or in `config.json`.**
 - A single simple typed item (`milk`) can be added directly without the sheet. Anything with separators opens the same preview sheet (proposed).
 
-### Voice capture
+### Voice capture and the server function
 
-- The design shows live listening with a transcript. Browsers only allow microphone access on HTTPS pages, so over plain HTTP this will not work (risk 1).
-- If the Web Speech API is unavailable, the mic button should focus the add bar and prompt the iPadOS keyboard's built-in dictation key. The text then goes through the same parse-preview sheet. Build this fallback first; add live listening only if HTTPS is enabled and it works on the actual iPad.
+Flow: tap mic, record with `getUserMedia` and `MediaRecorder`, stop, upload the clip to a Supabase Edge Function, get back `{ transcript, items }`, show the Review state.
+
+- **Do not use** the Web Speech API (unreliable in Home Screen apps) or the iPadOS keyboard dictation key. Greyson does not want either.
+- **Recorder:** Safari records `audio/mp4`, other browsers `audio/webm`. Pick the type with `MediaRecorder.isTypeSupported`. Drive the waveform from an `AnalyserNode` on the same stream. Release the microphone tracks as soon as recording stops.
+- **Edge Function** (new Supabase project, name it `parse-groceries`):
+  1. Accepts either `{ text }` or an audio clip. Reject clips over about 30 seconds or 2 MB.
+  2. For audio, call OpenAI speech to text. Current choice: `gpt-transcribe` (about $0.0045 per minute). Pass a short prompt of grocery vocabulary (cilantro, scallions, Greek yogurt, and brand names) to help recognition. Check the current model name and request format in OpenAI's docs.
+  3. Send the transcript to Claude Haiku 5.5 (`claude-haiku-5-5`) with a prompt that returns only JSON: `{ "items": [ { "name", "quantity", "category" } ] }`, where category is one of the app's categories. It should expand phrases like `stuff for tacos`, split run-on lists, ignore filler words and fix obvious mishearings. Strip code fences before parsing.
+  4. Return `{ transcript, items }`. **No database reads or writes.**
+- **Keys** are stored as Supabase secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`). They are never in the app.
+- **Protect the function.** It is called from a page that is served without login, so the Supabase publishable key in `config.json` is effectively public. Therefore: restrict CORS to the hub's own origin, enforce the size and length limits above, add a simple per-minute rate limit, and set hard monthly spend limits on both API accounts. Do not leave JWT verification off with open CORS.
+- **Expected cost:** about a tenth of a cent per 15-second clip.
+- A streaming model (`gpt-live-transcribe`) would show words while speaking but costs about 4 times as much and is harder to build. Not for the first build.
 
 ### Scenes
 
@@ -199,6 +238,7 @@ Write a pluggable function `parseGroceries(text): Promise<Item[]>` where `Item =
   "weather": "weather.home",
   "calendars": ["calendar.REPLACE_FAMILY"],
   "groceryList": "todo.shopping_list",
+  "voice": { "functionUrl": "https://REPLACE.supabase.co/functions/v1/parse-groceries", "publishableKey": "REPLACE", "maxSeconds": 30, "silenceStopSeconds": 2 },
   "scenes": [
     { "id": "wake-up", "label": "Wake Up", "icon": "sunrise", "entity_id": "script.wake_up" },
     { "id": "good-night", "label": "Good Night", "icon": "moon", "entity_id": "script.good_night" }
@@ -241,16 +281,24 @@ script:
    Turning a Samsung TV on from HA can be unreliable. Test it in the real room. Waking the Apple TV may power the Samsung through HDMI-CEC.
 7. **iPad:** Settings, Display & Brightness, Auto-Lock to Never. Keep it plugged in. Open the app URL in Safari, Share, Add to Home Screen, then open it from the Home Screen and sign in there. Use Guided Access to pin the app.
 
+### Voice backend and HTTPS (do before phase 1)
+
+1. **HTTPS.** Install HA's Let's Encrypt add-on and get a certificate for a name Greyson controls (a free DuckDNS name, or a subdomain of a domain he owns) using the DNS challenge. Point the name at HA's local IP. Set HA's `http:` section to use the certificate. Confirm `https://<name>:8123` loads on the iPad over home Wi-Fi.
+2. **New Supabase project**, used only by this app. Do not reuse any other project.
+3. **New API keys** from separate OpenAI and Anthropic accounts or workspaces made for this app, each with a low monthly spend limit (for example $5). Add them as Supabase secrets.
+4. Deploy the `parse-groceries` function (section 7) and put its URL and publishable key in `config.json`.
+
 ## 10. Build plan
 
-Do the phases in order. Show Greyson a screenshot at the end of each phase.
+Do the phases in order. At the end of each phase, show Greyson a screenshot, list what you could not verify, and **stop and wait for his approval** before starting the next one.
 
-1. **Scaffold and connect.** Project, build to `www`, manifest and meta tags, HA connection with `getAuth()`, mock mode, `config.json`, the setup page. *Done when:* the app loads on the iPad from HA, signs in, and the setup page lists entities.
+0. **Mic spike (do this first, before any design work).** A one-page test served from HA over the HTTPS name: a button that records 5 seconds, plays it back and shows the level. Install it to the Home Screen on the iPad. *Done when:* it records in the installed app, again after force-closing and reopening, and again after the iPad sleeps and wakes. If it fails only in the installed app, tell Greyson immediately; the fallback is running the hub in a regular Safari tab.
+1. **Scaffold and connect.** Project, build to `www`, manifest and meta tags, HA connection with `getAuth()`, mock mode, `config.json`, the setup page. *Done when:* the app loads on the iPad from HA over HTTPS, signs in, and the setup page lists entities.
 2. **Home.** Layout, clock, date line with weather, three tiles, Today panel with live events. *Done when:* it matches the Home design at 1180 x 820, checked side by side and by eye.
 3. **Calendar view.** Today panel and This week panel from real data, `‹ Home`, auto-return. *Done when:* a new event added in Apple Calendar shows up within about 15 minutes.
 4. **Grocery list.** Category cards, check and uncheck, Completed with Clear, header count, Home badge, live updates. *Done when:* an item added on an iPhone in Reminders shows on the iPad, and one checked on the iPad shows on the phone (timing depends on Reminders Sync).
 5. **Add by typing.** Add bar, `parseGroceries` version 1, the preview sheet, `Add N Items`. *Done when:* the test sentence in section 7 produces the right four chips and adds them.
-6. **Voice.** Dictation-key fallback first. Live listening only if HTTPS is enabled and it works on the iPad.
+6. **Voice.** Listening, Transcribing and Review states, recorder and waveform, the `parse-groceries` function, error state. *Done when:* saying the test sentence into the installed Home Screen app on the real iPad produces the right four chips and adds them, still works after closing and reopening the app, and a 30-second ramble with 10 items sorts correctly.
 7. **Scenes.** Wire the tiles to HA scripts or scenes with the confirmation state. *Done when:* Wake Up turns on the lamp, fireplace and TV in the real room.
 8. **Polish.** Motion, optical alignment pass, frame-rate check, offline indicator, empty states, accessibility of touch targets, one full day of soak testing on the wall iPad.
 
@@ -262,8 +310,8 @@ Do the phases in order. Show Greyson a screenshot at the end of each phase.
 
 ## 12. Risks and things to verify (do not assume)
 
-1. **Microphone vs HTTP.** Live voice needs HTTPS. The plan is plain HTTP. Either enable HTTPS (Nabu Casa or a local reverse proxy) or rely on keyboard dictation. Ask Greyson before enabling HTTPS.
-2. **Speech recognition in a Home Screen app.** The Web Speech API has been unreliable in iOS standalone web apps. Test early on the actual iPad.
+1. **HTTPS setup.** The microphone needs HTTPS. The free route (HA Let's Encrypt add-on, DNS challenge, a name pointing at HA's local address) needs about 30 minutes of setup. Some routers block public names that resolve to private addresses (DNS rebinding protection); if so, allow that one name in the router. Check the add-on's current docs for supported DNS providers. Nabu Casa would also work but Greyson does not want a subscription.
+2. **Microphone in an installed iPad web app.** Reported WebKit problems: the permission prompt can reappear when the URL hash changes, and recording can fail after closing and reopening the app until the device restarts. It works in a normal Safari tab. Mitigations: no URL changes between screens, release the mic tracks after every recording, and run the phase 0 spike before building anything else. Tell Greyson at once if it fails.
 3. **Calendar entity limits.** CalDAV entities track a single upcoming event and refresh about every 15 minutes. Use range queries, and set Greyson's expectation about the delay.
 4. **Reminders Sync is a Labs feature.** It can change. Background timing is controlled by iOS (from about 15 minutes to 24 hours when the app is closed). Shared Family lists and the Groceries list type are not covered by its documentation, so test them first. Fallback: the HA Bring! integration with the Bring! app.
 5. **Categories do not sync.** They exist only on this screen.
@@ -282,7 +330,8 @@ Do the phases in order. Show Greyson a screenshot at the end of each phase.
 
 - Where should the Rooms panel be opened from, and can he share its design?
 - Should Leaving Home be added as a tile, and where, since the Home design has room for only three tiles?
-- Should timed events disappear once they end, and what shows when nothing is planned?
+- Should timed events disappear once they end? (Empty states are decided: quiet single line, see Real data only.)
 - Do you have the Claude Design export or tokens (fonts, colors, radii, shadows)?
 - Is the iPad's brightness a problem at night with a light-only theme? If so, consider an iPadOS Shortcut that dims the screen at a set time. Do not add a dark theme.
 - What extra grocery categories does the family want?
+- Which name will the HTTPS address use (a free DuckDNS name, or a subdomain of a domain Greyson owns)?

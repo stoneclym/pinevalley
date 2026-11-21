@@ -8,7 +8,7 @@
  * Development: `npm run dev` may use a long-lived token from .env.development.local.
  * That file is only read in dev mode, and the branch is removed from production builds.
  *
- * Mock mode (?mock=1, remembered until ?mock=0) never touches HA.
+ * Mock mode (dev only, ?mock=1) never touches HA and is never the default.
  */
 import {
   type Auth,
@@ -22,22 +22,12 @@ import {
 } from "home-assistant-js-websocket";
 
 const TOKENS_KEY = "hub.hassTokens";
-const MOCK_KEY = "hub.mock";
-
-function readMockFlag(): boolean {
-  const param = new URLSearchParams(location.search).get("mock");
-  try {
-    if (param === "1") localStorage.setItem(MOCK_KEY, "1");
-    if (param === "0") localStorage.removeItem(MOCK_KEY);
-    if (localStorage.getItem(MOCK_KEY) === "1") return true;
-  } catch {
-    if (param === "1") return true;
-  }
-  // In dev without a token there is nothing to talk to, so default to mock.
-  return import.meta.env.DEV && !import.meta.env.VITE_HA_TOKEN;
-}
-
-export const MOCK = readMockFlag();
+/**
+ * Mock mode: development builds only, and only when asked for with ?mock=1.
+ * In production builds this is the constant `false`, so the sample data is left out entirely.
+ */
+export const MOCK: boolean =
+  import.meta.env.DEV && new URLSearchParams(location.search).get("mock") === "1";
 
 export type ConnectionStatus = "connecting" | "online" | "offline";
 type StatusListener = (s: ConnectionStatus) => void;
@@ -75,7 +65,11 @@ async function loadTokens(): Promise<AuthData | null> {
 }
 
 async function makeAuth(): Promise<Auth> {
-  if (import.meta.env.DEV && import.meta.env.VITE_HA_TOKEN) {
+  if (import.meta.env.DEV) {
+    // The dev server is not HA, so HA's login page cannot run here.
+    if (!import.meta.env.VITE_HA_TOKEN) {
+      throw new Error("Dev server: add VITE_HA_TOKEN to .env.development.local, or open with ?mock=1");
+    }
     return createLongLivedTokenAuth(import.meta.env.VITE_HA_URL, import.meta.env.VITE_HA_TOKEN);
   }
   try {

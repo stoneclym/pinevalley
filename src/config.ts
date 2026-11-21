@@ -5,12 +5,22 @@ export type SceneConfig = {
   entity_id: string;
 };
 
+export type VoiceConfig = {
+  /** URL of the parse-groceries Supabase Edge Function. */
+  functionUrl: string;
+  /** Supabase publishable key. Public by design: the function is protected by CORS and limits. */
+  publishableKey: string;
+  maxSeconds: number;
+  silenceStopSeconds: number;
+};
+
 export type HubConfig = {
   room: string;
   autoReturnSeconds: number;
   weather: string;
   calendars: string[];
   groceryList: string;
+  voice: VoiceConfig | null;
   scenes: SceneConfig[];
 };
 
@@ -20,6 +30,7 @@ const DEFAULTS: HubConfig = {
   weather: "weather.home",
   calendars: [],
   groceryList: "todo.shopping_list",
+  voice: null,
   scenes: [],
 };
 

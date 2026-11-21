@@ -1,7 +1,7 @@
 {
   "name": "Home Hub",
   "short_name": "Home",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "landscape",
