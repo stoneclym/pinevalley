@@ -19,6 +19,8 @@ export type Recorder = {
   cancel: () => void;
   /** Resolves with the clip after stop() or an automatic stop; null after cancel(). */
   result: Promise<Blob | null>;
+  /** Short facts for the error line when something goes wrong (track muted, meter state…). */
+  diagnostics: () => string;
 };
 
 const SPEECH_LEVEL = 0.06;      // level that counts as someone talking
@@ -93,6 +95,7 @@ export async function startRecording(opts: RecorderOptions): Promise<Recorder> {
 
   const stop = () => {
     if (rec.state === "inactive") return;
+    stoppedAt = performance.now();
     try {
       rec.requestData();
     } catch {
@@ -101,8 +104,12 @@ export async function startRecording(opts: RecorderOptions): Promise<Recorder> {
     rec.stop();
   };
   const startedAt = performance.now();
+  let stoppedAt = 0;
   let heardSpeech = false;
   let meterWorks = false;
+  const track = stream.getAudioTracks()[0];
+  const trackFacts = () =>
+    track ? `track ${track.readyState}${track.muted ? " muted" : ""}${track.enabled ? "" : " disabled"}` : "no audio track";
   let quietSince = startedAt;
 
   const tick = () => {
@@ -144,5 +151,13 @@ export async function startRecording(opts: RecorderOptions): Promise<Recorder> {
       else rec.stop();
     },
     result,
+    diagnostics: () =>
+      [
+        `${chunks.length} slices`,
+        `${(((stoppedAt || performance.now()) - startedAt) / 1000).toFixed(1)} s`,
+        trackFacts(),
+        `meter ${ctx ? ctx.state : "none"}${meterWorks ? " heard" : " silent"}`,
+        rec.mimeType || mimeType || "default type",
+      ].join(" · "),
   };
 }

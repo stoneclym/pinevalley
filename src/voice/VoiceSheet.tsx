@@ -65,7 +65,7 @@ export function VoiceSheet({ input, cfg, onAdd, onClose }: {
         const clip = await r.result;
         recorder.current = null;
         if (!clip || !alive.current) return; // cancelled
-        if (!clip.size) throw new Error("empty recording");
+        if (!clip.size) throw new Error(`empty recording · ${r.diagnostics()}`);
         setState({ s: "working", label: "Transcribing" });
         if (!voiceConfigured(cfg)) {
           setState({
