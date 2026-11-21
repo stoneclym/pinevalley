@@ -187,3 +187,26 @@ button { transition: transform 160ms ease; }
   .to-detail, .to-home { animation: none; }
   button:active { transform: none; }
 }
+
+/* Demo build only: the 1180 × 820 canvas, scaled to fit and centred. A transformed #root
+   also becomes the frame for fixed-position layers (sheet, transitions). */
+html.demo body { background: #2b2118; }
+html.demo #root {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1180px;
+  height: 820px;
+  transform: translate(-50%, -50%) scale(var(--demo-scale, 1));
+  overflow: hidden;
+  border-radius: 18px;
+}
+.demo-tag {
+  position: fixed;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font: 500 12px/1 var(--font-sans);
+  color: rgba(244, 238, 228, .7);
+  pointer-events: none;
+}

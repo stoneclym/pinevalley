@@ -25,7 +25,7 @@ let timer: number | undefined;
 let started = false;
 
 async function refresh() {
-  if (import.meta.env.DEV && MOCK) {
+  if (__MOCK_BUILD__ && MOCK) {
     store.set({ events: mockEvents(new Date()), loaded: true });
     return;
   }

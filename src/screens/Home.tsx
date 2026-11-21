@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import type { ScreenName } from "../App";
-import type { HubConfig, SceneConfig } from "../config";
+import type { HubConfig, SceneConfig, StatusTileConfig } from "../config";
 import { COPY } from "../copy";
 import { useCalendar } from "../ha/calendar";
+import { useDoor } from "../ha/door";
 import { runScene } from "../ha/scenes";
 import { useTodo } from "../ha/todo";
 import { useWeather } from "../ha/weather";
 import { todayView } from "../lib/events";
 import { formatClock, formatShortDate, formatTime } from "../lib/time";
 import { useNow } from "../lib/useNow";
-import { Alert, Cart, Check, ChevronRight, SceneIcon, WeatherIcon } from "../ui/icons";
+import { Alert, Cart, Check, ChevronRight, GarageClosed, GarageOpen, SceneIcon, WeatherIcon } from "../ui/icons";
 import { Screen } from "./Screen";
 import "./Home.css";
 
@@ -45,6 +46,22 @@ function SceneTile({ scene }: { scene: SceneConfig }) {
       </span>
       <span className="tile-label">{state === "error" ? "Didn't run" : scene.label}</span>
     </button>
+  );
+}
+
+/** Read-only status, like Apple Home's accessory tiles: name, then state in lighter text. */
+function StatusTile({ tile }: { tile: StatusTileConfig }) {
+  const { state, text } = useDoor(tile.entity_id);
+  const open = state !== "closed" && state !== "unavailable";
+  return (
+    <div className={`glass tile tile-status ${open ? "tile-status-open" : ""}`} role="status"
+      aria-label={`${tile.label}, ${text}`}>
+      <span className="tile-icon">{open ? <GarageOpen size={32} /> : <GarageClosed size={32} />}</span>
+      <span className="tile-text">
+        <span className="tile-label">{tile.label}</span>
+        <span className="tile-state">{text}</span>
+      </span>
+    </div>
   );
 }
 
@@ -130,6 +147,7 @@ export function Home({ config, go }: { config: HubConfig; go: (s: ScreenName) =>
           <div className="home-clock">{formatClock(now)}</div>
           <div className="tiles">
             {config.scenes.map((s) => <SceneTile key={s.id} scene={s} />)}
+            {config.statusTiles.map((t) => <StatusTile key={t.id} tile={t} />)}
             <GroceriesTile count={unchecked} onOpen={() => go("groceries")} />
           </div>
         </div>

@@ -25,7 +25,7 @@ function start(id: string) {
   if (started) return;
   started = true;
   entityId = id;
-  if (import.meta.env.DEV && MOCK) {
+  if (__MOCK_BUILD__ && MOCK) {
     store.set({ items: mockTodoItems(), loaded: true });
     return;
   }
@@ -65,7 +65,7 @@ export async function addItems(input: string[]): Promise<void> {
   const onList = new Set(store.get().items.filter((i) => i.status !== "completed").map((i) => i.summary.trim().toLowerCase()));
   const names = input.filter((n) => !onList.has(n.trim().toLowerCase()));
   if (!names.length) return;
-  if (import.meta.env.DEV && MOCK) {
+  if (__MOCK_BUILD__ && MOCK) {
     localChange((items) => [
       ...items,
       ...names.map((summary) => ({ uid: crypto.randomUUID(), summary, status: "needs_action" as const })),
@@ -78,12 +78,12 @@ export async function addItems(input: string[]): Promise<void> {
 export async function setStatus(item: TodoItem, status: TodoStatus): Promise<void> {
   // Show the change at once; the subscription confirms (or corrects) it a moment later.
   localChange((items) => items.map((i) => (i.uid === item.uid ? { ...i, status } : i)));
-  if (import.meta.env.DEV && MOCK) return;
+  if (__MOCK_BUILD__ && MOCK) return;
   await call("update_item", { item: item.uid, status });
 }
 
 export async function clearCompleted(): Promise<void> {
   localChange((items) => items.filter((i) => i.status !== "completed"));
-  if (import.meta.env.DEV && MOCK) return;
+  if (__MOCK_BUILD__ && MOCK) return;
   await call("remove_completed_items", {});
 }

@@ -18,6 +18,10 @@ a long-lived access token. That file is ignored by git and is never read by `npm
 Mock mode exists only in development builds and only with `?mock=1`. Production builds
 contain no sample data.
 
+`npm run build:demo` makes a sample-data demo in `dist-demo/` that scales the iPad screen to fit
+any window (it never talks to Home Assistant). `dist-demo/artifact.html` is the version published
+as a private claude.ai page for walking through the UI on a phone.
+
 ## Deploy to Home Assistant
 
 ```bash

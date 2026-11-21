@@ -5,6 +5,15 @@ export type SceneConfig = {
   entity_id: string;
 };
 
+/** A read-only status tile, e.g. the garage door. Shows state; tapping does nothing. */
+export type StatusTileConfig = {
+  id: string;
+  label: string;
+  icon: string;
+  /** A cover (open/closed/opening/closing) or a door binary_sensor (on = open). */
+  entity_id: string;
+};
+
 export type VoiceConfig = {
   /** URL of the parse-groceries Supabase Edge Function. */
   functionUrl: string;
@@ -22,6 +31,7 @@ export type HubConfig = {
   groceryList: string;
   voice: VoiceConfig | null;
   scenes: SceneConfig[];
+  statusTiles: StatusTileConfig[];
 };
 
 const DEFAULTS: HubConfig = {
@@ -32,6 +42,7 @@ const DEFAULTS: HubConfig = {
   groceryList: "todo.shopping_list",
   voice: null,
   scenes: [],
+  statusTiles: [],
 };
 
 /** Loads config.json from next to index.html. Never holds secrets: entity IDs only. */

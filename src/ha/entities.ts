@@ -7,8 +7,8 @@ type Listener = (e: HassEntities) => void;
 
 // One shared subscription for the whole app; the last known states stay on screen
 // while HA is unreachable.
-// `import.meta.env.DEV &&` lets the production build drop the mock data entirely.
-let latest: HassEntities | null = import.meta.env.DEV && MOCK ? mockEntities() : null;
+// `__MOCK_BUILD__ &&` (a build-time constant) lets the production build drop the mock data entirely.
+let latest: HassEntities | null = __MOCK_BUILD__ && MOCK ? mockEntities() : null;
 const listeners = new Set<Listener>();
 let started = false;
 

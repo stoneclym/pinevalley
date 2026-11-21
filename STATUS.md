@@ -14,6 +14,7 @@ Updated 2026-11-20. Spec: [CLAUDE.md](CLAUDE.md).
 | 5 | Add by typing, local parser, preview sheet | Done | Not yet |
 | 6 | Voice: Listening, Transcribing, Review, error states, recorder | Front end done | Needs the `parse-groceries` backend |
 | 7 | Scene tiles with confirmation and error state | Done | Not yet. Needs the HA scripts |
+| 7b | Garage door status tile (third tile, read-only) | Done | Not yet. Needs the garage entity ID |
 | 8 | Polish: motion, empty states, offline label | Partly | Frame rate and a day-long soak test happen on the iPad |
 
 ## Checked here (dev machine, mock mode, 1180 × 820)
@@ -39,6 +40,8 @@ Updated 2026-11-20. Spec: [CLAUDE.md](CLAUDE.md).
 - Home shows at most 2 all-day and 4 timed events, then `+N more`.
 - This week lists only days that have events (from "Real data only" in the spec).
 - Adding an item that is already on the list and unchecked is skipped.
+- The garage tile only shows state (Open, Closed, Opening…, Closing…). Tapping it does nothing,
+  so nobody opens the garage by brushing the screen. Works with a `cover.*` or a door `binary_sensor.*`.
 - The sheet shows the category the voice function returns. The list always uses `categorize()`.
   Usually they agree, but an item the keyword map doesn't know will show under Other in the list.
 

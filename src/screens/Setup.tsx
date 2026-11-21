@@ -12,11 +12,15 @@ const DOMAINS: { domain: string; title: string }[] = [
   { domain: "todo", title: "To-do lists" },
   { domain: "scene", title: "Scenes" },
   { domain: "script", title: "Scripts" },
+  { domain: "cover", title: "Covers (garage doors)" },
 ];
 
 /** Every entity ID config.json refers to, to mark which ones exist. */
 function configuredIds(c: HubConfig): Set<string> {
-  return new Set([c.weather, c.groceryList, ...c.calendars, ...c.scenes.map((s) => s.entity_id)]);
+  return new Set([
+    c.weather, c.groceryList, ...c.calendars,
+    ...c.scenes.map((s) => s.entity_id), ...c.statusTiles.map((t) => t.entity_id),
+  ]);
 }
 
 /** Hidden page (#/setup) that lists entity IDs to copy into config.json. */

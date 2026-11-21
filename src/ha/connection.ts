@@ -23,11 +23,13 @@ import {
 
 const TOKENS_KEY = "hub.hassTokens";
 /**
- * Mock mode: development builds only, and only when asked for with ?mock=1.
- * In production builds this is the constant `false`, so the sample data is left out entirely.
+ * Mock mode: development builds with ?mock=1, and the demo build (always on, sample data,
+ * never talks to HA). In the production build `__MOCK_BUILD__` is the constant `false`,
+ * so the sample data is left out entirely.
  */
+export const DEMO: boolean = __MOCK_BUILD__ && import.meta.env.MODE === "demo";
 export const MOCK: boolean =
-  import.meta.env.DEV && new URLSearchParams(location.search).get("mock") === "1";
+  __MOCK_BUILD__ && (DEMO || new URLSearchParams(location.search).get("mock") === "1");
 
 export type ConnectionStatus = "connecting" | "online" | "offline";
 type StatusListener = (s: ConnectionStatus) => void;

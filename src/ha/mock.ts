@@ -24,6 +24,7 @@ export function mockEntities(): HassEntities {
     entity("script.good_night", "off", { friendly_name: "Good Night" }),
     entity("script.leaving_home", "off", { friendly_name: "Leaving Home" }),
     entity("light.kitchen_lamp", "on", { friendly_name: "Kitchen Lamp" }),
+    entity("cover.garage_door", "closed", { friendly_name: "Garage Door", device_class: "garage" }),
   ].map((e) => [e.entity_id, e]),
   );
 }

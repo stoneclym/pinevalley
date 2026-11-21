@@ -39,6 +39,13 @@ export const Alert = (p: P) => (
   <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v5" /><circle cx="12" cy="16.2" r=".6" fill="currentColor" /></Svg>
 );
 
+export const GarageClosed = (p: P) => (
+  <Svg {...p}><path d="M3.5 20V9.5L12 4l8.5 5.5V20" /><path d="M6.5 20v-8h11v8" /><path d="M6.5 14.7h11M6.5 17.4h11" /></Svg>
+);
+export const GarageOpen = (p: P) => (
+  <Svg {...p}><path d="M3.5 20V9.5L12 4l8.5 5.5V20" /><path d="M6.5 20v-8h11v8" /><path d="M6.5 14.2h11" /></Svg>
+);
+
 /** Scene tile icons by config name. Unknown names fall back to the sparkle. */
 export function SceneIcon({ name, ...p }: P & { name: string }) {
   switch (name) {
