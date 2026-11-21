@@ -1,0 +1,108 @@
+/* Design tokens taken from the Claude Design export (design/Home-1-Light.dc.html).
+   Light theme only, by decision: no prefers-color-scheme branches anywhere. */
+:root {
+  color-scheme: light only;
+
+  --ink: #2b2118;            /* primary text */
+  --ink-2: #5a4836;          /* secondary text, links, times */
+  --ink-badge: #1e1a17;      /* text on white badges */
+  --rule: rgba(43, 33, 24, 0.22);   /* timeline line */
+  --dot-hollow-fill: #ebddc8;
+
+  --font-sans: Inter, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Instrument Serif", "Bodoni 72", Didot, serif;
+
+  /* Liquid Glass baseline */
+  --glass-fill: rgba(255, 252, 246, 0.34);
+  --glass-blur: blur(30px) saturate(1.7);
+  --glass-edge: 1px solid rgba(255, 255, 255, 0.72);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 14px 36px rgba(92, 62, 32, 0.16);
+  --tile-radius: 32px;
+  --tile-size: 136px;
+
+  --badge-fill: rgba(255, 255, 255, 0.84);
+  --badge-edge: 1px solid rgba(255, 255, 255, 0.9);
+  --badge-shadow: inset 0 1px 0 #fff, 0 10px 24px rgba(0, 0, 0, 0.14);
+}
+
+/* Wall-device hygiene (spec section 5) */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  background: #e6cda8;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+input, textarea, .selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+button { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* Screen background: blurred warm wood layer under a cream wash, as designed. */
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.screen-bg, .screen-wash { position: absolute; pointer-events: none; }
+.screen-bg {
+  inset: -40px;
+  filter: blur(10px);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 5px, rgba(120,76,36,.035) 5px 6px, rgba(255,255,255,0) 6px 13px),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(105,66,30,.06) 118px 120px),
+    linear-gradient(180deg, rgba(214,176,132,.45), rgba(196,152,108,.5)),
+    #e6cda8;
+}
+.screen-wash {
+  inset: 0;
+  background: linear-gradient(100deg,
+    rgba(244,238,228,.940) 0%, rgba(244,238,228,.930) 5%, rgba(244,238,228,.900) 10%,
+    rgba(244,238,228,.855) 15%, rgba(244,238,228,.797) 20%, rgba(244,238,228,.730) 25%,
+    rgba(244,238,228,.657) 30%, rgba(244,238,228,.580) 35%, rgba(244,238,228,.503) 40%,
+    rgba(244,238,228,.430) 45%, rgba(244,238,228,.363) 50%, rgba(244,238,228,.305) 55%,
+    rgba(244,238,228,.260) 60%, rgba(244,238,228,.230) 65%, rgba(244,238,228,.220) 70%,
+    rgba(244,238,228,.220) 100%);
+}
+.screen-content { position: relative; height: 100%; box-sizing: border-box; }
+
+.glass {
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+
+.offline-dot {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 13px/1 var(--font-sans);
+  color: var(--ink-2);
+  opacity: 0.8;
+}
+.offline-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b0662f;
+}

@@ -1,0 +1,132 @@
+{
+  "artboards": [
+    {
+      "file": "Panel-Sidebar-Light.dc.html",
+      "x": 2760,
+      "y": 0,
+      "w": 1180,
+      "h": 820,
+      "title": "Panel 1 · Room list · Light"
+    },
+    {
+      "file": "Panel-Sidebar-Dark.dc.html",
+      "x": 4020,
+      "y": 0,
+      "w": 1180,
+      "h": 820,
+      "title": "Panel 1 · Room list · Dark"
+    },
+    {
+      "file": "Panel-Stacked-Light.dc.html",
+      "x": 2760,
+      "y": 940,
+      "w": 1180,
+      "h": 820,
+      "title": "Panel 2 · Stacked rooms · Light"
+    },
+    {
+      "file": "Panel-Stacked-Dark.dc.html",
+      "x": 4020,
+      "y": 940,
+      "w": 1180,
+      "h": 820,
+      "title": "Panel 2 · Stacked rooms · Dark"
+    },
+    {
+      "file": "Home-1-Light.dc.html",
+      "x": 0,
+      "y": 3100,
+      "w": 1180,
+      "h": 820,
+      "title": "Home 1 · Scene tiles · Light"
+    },
+    {
+      "file": "Home-1-Dark.dc.html",
+      "x": 1260,
+      "y": 3100,
+      "w": 1180,
+      "h": 820,
+      "title": "Home 1 · Scene tiles · Dark"
+    },
+    {
+      "file": "Calendar-Light.dc.html",
+      "x": 2760,
+      "y": 3100,
+      "w": 1180,
+      "h": 820,
+      "title": "Calendar · Light"
+    },
+    {
+      "file": "Calendar-Dark.dc.html",
+      "x": 4020,
+      "y": 3100,
+      "w": 1180,
+      "h": 820,
+      "title": "Calendar · Dark"
+    },
+    {
+      "file": "Groceries-Light.dc.html",
+      "x": 2760,
+      "y": 4040,
+      "w": 1180,
+      "h": 820,
+      "title": "Groceries · Light"
+    },
+    {
+      "file": "Groceries-Dark.dc.html",
+      "x": 4020,
+      "y": 4040,
+      "w": 1180,
+      "h": 820,
+      "title": "Groceries · Dark"
+    },
+    {
+      "file": "Groceries-Voice-Light.dc.html",
+      "x": 2760,
+      "y": 4980,
+      "w": 1180,
+      "h": 820,
+      "title": "Groceries · Speaking · Light"
+    },
+    {
+      "file": "Groceries-Voice-Dark.dc.html",
+      "x": 4020,
+      "y": 4980,
+      "w": 1180,
+      "h": 820,
+      "title": "Groceries · Speaking · Dark"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "t2",
+      "x": 2760,
+      "y": -260,
+      "w": 240,
+      "maxW": 2440,
+      "text": "Control panel: two layouts, light and dark",
+      "kind": "title1"
+    },
+    {
+      "id": "t3",
+      "x": 0,
+      "y": 2840,
+      "w": 240,
+      "maxW": 2440,
+      "text": "Home screen update: three options, light and dark",
+      "kind": "title1"
+    },
+    {
+      "id": "t4",
+      "x": 2760,
+      "y": 2840,
+      "w": 240,
+      "maxW": 2440,
+      "text": "Calendar and Groceries, light and dark",
+      "kind": "title1"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
