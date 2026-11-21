@@ -81,7 +81,7 @@ Left side, top to bottom:
 1. **Date line**, one line: short weekday and date (`Fri Nov 20`), then a small weather-condition icon, then the current temperature (`48°`). This follows the date-and-weather line on the iOS lock screen. No separate weather card, no forecast.
 2. **Clock**, enormous, serif, 12-hour, no leading zero (`5:18`), no AM/PM. Readable from across the room.
 3. **Tile row** under the clock: three square glass tiles side by side:
-   - **Wake Up** (sunrise icon) is a scene.
+   - **Morning** (sunrise icon) is a scene.
    - **Good Night** (moon icon) is a scene.
    - **Groceries** (cart icon) opens the Grocery list, with a small white circular badge in the top right showing the number of unchecked items. Hide the badge at zero.
 
@@ -97,7 +97,7 @@ Behavior:
 
 - Tapping the Today panel or `Calendar >` opens the Calendar view.
 - Tapping the Groceries tile opens the Grocery list.
-- Tapping Wake Up or Good Night runs the scene and shows a brief confirmation (section 5). Scene tiles have no on/off state.
+- Tapping Morning or Good Night runs the scene and shows a brief confirmation (section 5). Scene tiles have no on/off state.
 - Leaving Home was requested as a third scene but is not in this Home design. Build the tile list from config (section 8) so it can be added without code changes.
 - Proposed (not designed): hide timed events that have already ended; if more events than fit, show a short `+N more` line; if nothing is planned, show a quiet `Nothing planned today`.
 
@@ -240,7 +240,7 @@ Flow: tap mic, record with `getUserMedia` and `MediaRecorder`, stop, upload the 
   "groceryList": "todo.shopping_list",
   "voice": { "functionUrl": "https://REPLACE.supabase.co/functions/v1/parse-groceries", "publishableKey": "REPLACE", "maxSeconds": 30, "silenceStopSeconds": 2 },
   "scenes": [
-    { "id": "wake-up", "label": "Wake Up", "icon": "sunrise", "entity_id": "script.wake_up" },
+    { "id": "morning", "label": "Morning", "icon": "sunrise", "entity_id": "script.morning" },
     { "id": "good-night", "label": "Good Night", "icon": "moon", "entity_id": "script.good_night" }
   ]
 }
@@ -261,8 +261,8 @@ Do these before or alongside the build. Walk Greyson through them if he asks.
 
 ```yaml
 script:
-  wake_up:
-    alias: Wake Up
+  morning:
+    alias: Morning
     sequence:
       - action: light.turn_on
         target: { entity_id: light.REPLACE_LAMP }
@@ -299,7 +299,7 @@ Do the phases in order. At the end of each phase, show Greyson a screenshot, lis
 4. **Grocery list.** Category cards, check and uncheck, Completed with Clear, header count, Home badge, live updates. *Done when:* an item added on an iPhone in Reminders shows on the iPad, and one checked on the iPad shows on the phone (timing depends on Reminders Sync).
 5. **Add by typing.** Add bar, `parseGroceries` version 1, the preview sheet, `Add N Items`. *Done when:* the test sentence in section 7 produces the right four chips and adds them.
 6. **Voice.** Listening, Transcribing and Review states, recorder and waveform, the `parse-groceries` function, error state. *Done when:* saying the test sentence into the installed Home Screen app on the real iPad produces the right four chips and adds them, still works after closing and reopening the app, and a 30-second ramble with 10 items sorts correctly.
-7. **Scenes.** Wire the tiles to HA scripts or scenes with the confirmation state. *Done when:* Wake Up turns on the lamp, fireplace and TV in the real room.
+7. **Scenes.** Wire the tiles to HA scripts or scenes with the confirmation state. *Done when:* Morning turns on the lamp, fireplace and TV in the real room.
 8. **Polish.** Motion, optical alignment pass, frame-rate check, offline indicator, empty states, accessibility of touch targets, one full day of soak testing on the wall iPad.
 
 ## 11. Testing

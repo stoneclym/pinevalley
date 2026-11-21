@@ -13,10 +13,10 @@
   },
   "scenes": [
     {
-      "id": "wake-up",
-      "label": "Wake Up",
+      "id": "morning",
+      "label": "Morning",
       "icon": "sunrise",
-      "entity_id": "script.wake_up"
+      "entity_id": "script.morning"
     },
     {
       "id": "good-night",
