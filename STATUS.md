@@ -78,8 +78,7 @@ The map's land dots come from Natural Earth via world-atlas (`scripts/make-land-
 - Tiles never change color. Buttons press in (tiles to 0.96) and spring back. While Morning or Good Night
   runs, only its icon changes (gold rising sun, purple moon) and breathes gently; when Home Assistant
   reports the script finished, a glass banner drops from the top ("Good Morning!" / "Good Night!") for 3 s.
-- Status bar: `index.html` uses `black-translucent` (gradient behind the bar, soft wash for the text);
-  `status-default.html` ("Home B") uses `default` with `theme-color` #F3EBDF. Add both to compare.
+- Status bar: solid black (`apple-mobile-web-app-status-bar-style: black`) on both entry pages; the app starts below it.
 - The garage tile shows the live state first. A tap only opens "Open the garage?" / "Close the garage?";
   nothing moves without the second tap. No commands while the door is moving, offline, or still
   "Sending…". An unanswered confirmation closes itself after 30 seconds.
