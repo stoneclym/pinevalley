@@ -83,12 +83,37 @@ export const GarageOpen = (p: P) => (
   </Svg>
 );
 
+/** Bright: a full sun. */
+export const Bright = (p: P) => (
+  <Svg {...p}><circle cx="12" cy="12" r="4" /><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" /></Svg>
+);
+/** Dim: a half-lit sun with short rays. */
+export const Dim = (p: P) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="4" /><path d="M12 8a4 4 0 0 1 0 8z" fill="currentColor" />
+    <path d="M12 4.6v1M12 18.4v1M4.6 12h1M18.4 12h1M6.8 6.8l.7.7M16.5 16.5l.7.7M6.8 17.2l.7-.7M16.5 7.5l.7-.7" />
+  </Svg>
+);
+/** Night: a crescent moon with a small star. */
+export const NightMoon = (p: P) => (
+  <Svg {...p}><path d="M17.5 15.5A7 7 0 1 1 9.5 6a5.6 5.6 0 0 0 8 9.5z" /><path d="M18 3.5v3M16.5 5h3" /></Svg>
+);
+/** The filled location arrow (like Apple's). */
+export const LocationArrow = (p: P) => (
+  <svg aria-hidden="true" width={p.size ?? 24} height={p.size ?? 24} viewBox="0 0 24 24" fill={p.color ?? "currentColor"} style={{ display: "block" }}>
+    <path d="M21 3 3 10.5l7.6 2.9L13.5 21z" />
+  </svg>
+);
+
 /** Scene tile icons by config name. Unknown names fall back to the sparkle. */
 export function SceneIcon({ name, ...p }: P & { name: string }) {
   switch (name) {
     case "sunrise": return <Sunrise {...p} />;
     case "moon": return <Moon {...p} />;
     case "door": case "leave": case "away": return <Door {...p} />;
+    case "bright": return <Bright {...p} />;
+    case "dim": return <Dim {...p} />;
+    case "night": return <NightMoon {...p} />;
     default: return <Sparkle {...p} />;
   }
 }

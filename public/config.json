@@ -75,5 +75,32 @@
     },
     "remindDayBefore": true,
     "overrides": []
+  },
+  "standby": {
+    "location": {
+      "name": "Wilmington",
+      "lat": 34.2257,
+      "lon": -77.9447
+    },
+    "scenes": [
+      {
+        "id": "bright",
+        "label": "Bright",
+        "icon": "bright",
+        "entity_id": "script.bright"
+      },
+      {
+        "id": "dim",
+        "label": "Dim",
+        "icon": "dim",
+        "entity_id": "script.dim"
+      },
+      {
+        "id": "night",
+        "label": "Night",
+        "icon": "night",
+        "entity_id": "script.night"
+      }
+    ]
   }
 }

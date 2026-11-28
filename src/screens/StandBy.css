@@ -1,0 +1,76 @@
+/* StandBy: Apple's StandBy world clock, on the same 1180 × 820 canvas. A dark screen by design
+   (the rest of the app stays light). Measurements are scaled from the reference image. */
+.standby {
+  position: absolute;
+  inset: 0;
+  color: #f2ece2;
+  font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, var(--font-sans);
+}
+.sb-map { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+.sb-dateline {
+  position: absolute;
+  left: 64px;
+  top: 48px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font: 600 33px/1 -apple-system, "SF Pro Text", var(--font-sans);
+  letter-spacing: -0.01em;
+  cursor: default;
+}
+.sb-weather { display: flex; align-items: center; gap: 10px; }
+
+.sb-clockblock { position: absolute; left: 62px; bottom: 76px; }
+.sb-place {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 6px 6px;
+  color: #e3ae5b;
+  font: 700 37px/1 -apple-system, "SF Pro Text", var(--font-sans);
+  letter-spacing: -0.01em;
+}
+.sb-clock {
+  font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, var(--font-sans);
+  font-weight: 700;
+  font-size: 236px;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #f2ece2;
+  white-space: nowrap;
+}
+
+.sb-buttons { position: absolute; right: 50px; bottom: 56px; display: flex; gap: 26px; }
+.sb-btn { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #f2ece2; text-align: center; }
+.sb-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #2b2926;
+  border: 1px solid rgba(255, 255, 255, .07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.sb-label { font: 600 17px/1 -apple-system, "SF Pro Text", var(--font-sans); white-space: nowrap; }
+.sb-cal { gap: 2px; }
+.sb-cal-wd { font: 700 14px/1 -apple-system, "SF Pro Text", var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: #e3ae5b; }
+.sb-cal-day { font: 500 38px/1 -apple-system, "SF Pro Display", var(--font-sans); font-variant-numeric: tabular-nums; }
+
+.sb-icon { display: block; transition: color 400ms ease; }
+.sb-missing .sb-circle { opacity: .55; }
+.sb-missing { cursor: default; }
+.sb-starting .sb-icon, .sb-running .sb-icon { color: #e3ae5b; }
+.sb-running .sb-icon { animation: sb-breathe 1800ms ease-in-out infinite; }
+@keyframes sb-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+.sb-error .sb-icon { animation: nod 560ms ease-in-out both; }
+.sb-btn:not(:disabled):active { transform: scale(.94); }
+@media (prefers-reduced-motion: reduce) { .sb-icon { animation: none !important; } }
+
+/* Dark page behind the canvas while StandBy is showing. */
+body[data-standby] { background: #0b0a09; }
+body[data-standby] .bg-layer { opacity: 0 !important; }

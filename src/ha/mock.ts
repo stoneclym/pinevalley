@@ -20,7 +20,7 @@ export function mockEntities(cfg: HubConfig): HassEntities {
     entity(cfg.groceryList || "todo.shopping_list", "8", { friendly_name: "Shopping List" }),
     entity("light.kitchen_lamp", "on", { friendly_name: "Kitchen Lamp" }),
     ...cfg.calendars.map((id) => entity(id, "off", { friendly_name: "Calendar" })),
-    ...cfg.scenes.map((sc) => entity(sc.entity_id, "off", { friendly_name: sc.label })),
+    ...[...cfg.scenes, ...(cfg.standby?.scenes ?? [])].map((sc) => entity(sc.entity_id, "off", { friendly_name: sc.label })),
     ...cfg.statusTiles.map((t) => ({
       ...entity(t.entity_id, "closed", { friendly_name: t.label, device_class: "garage" }),
       last_changed: new Date(Date.now() - 2 * 3_600_000).toISOString(),

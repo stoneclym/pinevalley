@@ -5,6 +5,7 @@ import { useIdle } from "./lib/useIdle";
 import { Calendar } from "./screens/Calendar";
 import { Groceries } from "./screens/Groceries";
 import { Home } from "./screens/Home";
+import { StandBy } from "./screens/StandBy";
 import { Banners } from "./ui/Banner";
 import { Setup } from "./screens/Setup";
 
@@ -51,6 +52,9 @@ export function App({ config }: { config: HubConfig }) {
   const setup = useSetupHash();
   const [screen, setScreen] = useState<ScreenName>("home");
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Which home screen: the original (default) or StandBy. Tap the date 5 times to switch.
+  const [homeStyle, setHomeStyle] = useState<"classic" | "standby">("classic");
+  const switchHome = () => setHomeStyle((h) => (h === "classic" ? "standby" : "classic"));
   // Where the tapped tile was: the new screen zooms out of it, and Home settles back toward it.
   const origin = useRef({ x: 590, y: 410 });
 
@@ -61,11 +65,14 @@ export function App({ config }: { config: HubConfig }) {
     setScreen(next);
   };
 
-  // Calendar and Groceries use the calmer background (crossfaded by the full-screen layers).
+  // Calendar and Groceries use the calmer background (crossfaded by the full-screen layers);
+  // the StandBy home screen is dark.
   useEffect(() => {
     if (!setup && screen !== "home") document.body.dataset.calm = "";
     else delete document.body.dataset.calm;
-  }, [screen, setup]);
+    if (!setup && screen === "home" && homeStyle === "standby") document.body.dataset.standby = "";
+    else delete document.body.dataset.standby;
+  }, [screen, setup, homeStyle]);
 
   // Back to Home after a minute without touches, but never while the voice sheet is open.
   useIdle(config.autoReturnSeconds, !setup && screen !== "home" && !sheetOpen, () => go("home"));
@@ -77,7 +84,8 @@ export function App({ config }: { config: HubConfig }) {
       <div key={screen}
         className={`screen-transition ${screen === "home" ? "to-home" : "to-detail"}`}
         style={{ "--ox": `${origin.current.x}px`, "--oy": `${origin.current.y}px` } as CSSProperties}>
-        {screen === "home" && <Home config={config} go={go} />}
+        {screen === "home" && homeStyle === "classic" && <Home config={config} go={go} onSwitch={switchHome} />}
+        {screen === "home" && homeStyle === "standby" && <StandBy config={config} go={go} onSwitch={switchHome} />}
         {screen === "calendar" && <Calendar config={config} go={go} />}
         {screen === "groceries" && <Groceries config={config} go={go} onSheetChange={setSheetOpen} />}
       </div>

@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from "react";
 import type { ScreenName } from "../App";
 import type { HubConfig, SceneConfig } from "../config";
 import { COPY } from "../copy";
 import { useCalendar } from "../ha/calendar";
-import { startScene } from "../ha/scenes";
+import { useSceneRun } from "../ha/useSceneRun";
+import { useMultiTap } from "../lib/useMultiTap";
 import { useTodo } from "../ha/todo";
 import { useWeather } from "../ha/weather";
 import { todayView } from "../lib/events";
 import { formatClock, formatShortDate, formatTime } from "../lib/time";
 import { useNow } from "../lib/useNow";
-import { useEntities } from "../ha/entities";
 import { GarageTile } from "../ui/GarageTile";
 import { showBanner } from "../ui/Banner";
 import { PersonDots, personInfo, TimelineDot } from "../ui/PersonMarks";
@@ -22,7 +21,6 @@ import "./Home.css";
 const MAX_TIMED = 4;
 const MAX_ALL_DAY = 2;
 
-type TileState = "idle" | "starting" | "running" | "error";
 
 /** Each scene's moment, from its icon: sunrise is Morning, moon is Good Night. */
 function sceneKind(scene: SceneConfig): { kind: "morning" | "night" | null; greeting: string } {
@@ -38,37 +36,10 @@ function sceneKind(scene: SceneConfig): { kind: "morning" | "night" | null; gree
  * from the top ("Good Morning!"). A failure shows "Couldn't finish" with a small nod.
  */
 function SceneTile({ scene }: { scene: SceneConfig }) {
-  const states = useEntities();
-  // Not in Home Assistant yet: a quiet, inactive tile instead of an error on tap.
-  const missing = states !== null && !states[scene.entity_id];
-  const [state, setState] = useState<TileState>("idle");
-  const timer = useRef<number>(undefined);
   const { kind, greeting } = sceneKind(scene);
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  const settle = (s: TileState, ms: number) => {
-    setState(s);
-    clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setState("idle"), ms);
-  };
-
-  const press = async () => {
-    if (missing || state === "starting" || state === "running") return;
-    clearTimeout(timer.current);
-    setState("starting");
-    try {
-      const run = await startScene(scene.entity_id);
-      setState("running");
-      await run.finished;
-      setState("idle");
-      showBanner(greeting, kind === "night" ? <Moon size={24} /> : kind === "morning" ? <SunriseRising size={24} /> : undefined);
-    } catch (err) {
-      console.error(`Scene ${scene.entity_id} failed`, err);
-      settle("error", 2600);
-    }
-  };
-
-  const busy = state === "starting" || state === "running";
+  const { state, missing, busy, press } = useSceneRun(scene, () =>
+    showBanner(greeting, kind === "night" ? <Moon size={24} /> : kind === "morning" ? <SunriseRising size={24} /> : undefined),
+  );
   const label = !missing && state === "error" ? "Couldn\u2019t finish" : scene.label;
   const icon = kind === "morning" ? <SunriseRising size={32} /> : <SceneIcon name={scene.icon} size={32} />;
 
@@ -175,7 +146,9 @@ function TodayPanel({ config, now, onOpen }: { config: HubConfig; now: Date; onO
   );
 }
 
-export function Home({ config, go }: { config: HubConfig; go: (s: ScreenName) => void }) {
+export function Home({ config, go, onSwitch }: { config: HubConfig; go: (s: ScreenName) => void; onSwitch?: () => void }) {
+  // Tap the date 5 times to switch to the StandBy screen (and back).
+  const tapDate = useMultiTap(5, () => onSwitch?.());
   const now = useNow();
   const weather = useWeather(config.weather);
   const { items } = useTodo(config.groceryList);
@@ -185,7 +158,7 @@ export function Home({ config, go }: { config: HubConfig; go: (s: ScreenName) =>
     <Screen className="home">
       <div className="home-row">
         <div className="home-left">
-          <div className="home-dateline">
+          <div className="home-dateline" onClick={tapDate}>
             <span>{formatShortDate(now)}</span>
             {weather && weather.temperature !== null && (
               <span className="home-weather">

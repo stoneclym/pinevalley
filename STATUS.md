@@ -43,6 +43,15 @@ to Home Assistant.
   holiday `overrides` (move or skip). The day before, a bronze card sits at the top of Today.
   Pure date math in America/New_York. In demo mode, `?today=YYYY-MM-DD` pretends it's that day.
 
+## StandBy home screen
+
+Tap the date 5 times to switch between the original Home (the default) and a StandBy-style
+screen: a dark dotted world map whose daylight follows the real sun (recomputed every minute,
+`src/lib/sun.ts`), the day/night line, a marker and name for home (`standby.location`, else
+HA's `zone.home`), a big rounded clock, and round buttons for Calendar and the `standby.scenes`
+(Bright, Dim, Night: `script.bright`, `script.dim`, `script.night`, placeholders until they exist).
+The map's land dots come from Natural Earth via world-atlas (`scripts/make-land-dots.mjs`).
+
 ## Checked here (dev machine, mock mode, 1180 × 820)
 
 - Home, Calendar, Groceries and the review sheet match the Claude Design export side by side.

@@ -19,6 +19,14 @@ export type StatusTileConfig = {
   entity_id: string;
 };
 
+/** The alternate StandBy-style home screen (tap the date 5 times to switch). */
+export type StandbyConfig = {
+  /** Shown on the map and above the clock. Falls back to Home Assistant's home zone. */
+  location?: { name: string; lat: number; lon: number };
+  /** The round scene buttons next to Calendar. */
+  scenes: SceneConfig[];
+};
+
 export type VoiceConfig = {
   /** URL of the parse-groceries Supabase Edge Function. */
   functionUrl: string;
@@ -43,6 +51,7 @@ export type HubConfig = {
   people: Person[];
   /** Trash and recycling days for the reminder on the Today panel. */
   pickup: PickupConfig | null;
+  standby: StandbyConfig;
 };
 
 const DEFAULTS: HubConfig = {
@@ -56,6 +65,7 @@ const DEFAULTS: HubConfig = {
   statusTiles: [],
   people: [],
   pickup: null,
+  standby: { scenes: [] },
 };
 
 let current: HubConfig = DEFAULTS;
@@ -93,6 +103,11 @@ export async function loadConfig(): Promise<HubConfig> {
   } catch (err) {
     console.error("Could not load config.json, using defaults", err);
   }
-  current = { ...DEFAULTS, ...raw, voice: resolveVoice(raw.voice) };
+  current = {
+    ...DEFAULTS,
+    ...raw,
+    voice: resolveVoice(raw.voice),
+    standby: { ...DEFAULTS.standby, ...(raw.standby ?? {}) },
+  };
   return current;
 }
