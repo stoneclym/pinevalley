@@ -250,3 +250,7 @@ html.status-translucent .status-wash { display: block; }
   pointer-events: none;
 }
 @keyframes fade-screen { from { opacity: 0; } }
+
+/* The date line is a hidden 5-tap switch: tappable, but no press animation or highlight. */
+.dateline-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.dateline-tap:active, .dateline-tap:not(:disabled):active { transform: none; }

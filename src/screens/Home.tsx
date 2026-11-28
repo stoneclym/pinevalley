@@ -158,7 +158,9 @@ export function Home({ config, go, onSwitch }: { config: HubConfig; go: (s: Scre
     <Screen className="home">
       <div className="home-row">
         <div className="home-left">
-          <div className="home-dateline" onClick={tapDate}>
+          {/* A real button (iOS Safari only delivers taps to elements it treats as tappable),
+              counting touches on press so quick taps all register. */}
+          <button type="button" className="home-dateline dateline-tap" onPointerDown={tapDate} aria-label={formatShortDate(now)}>
             <span>{formatShortDate(now)}</span>
             {weather && weather.temperature !== null && (
               <span className="home-weather">
@@ -166,7 +168,7 @@ export function Home({ config, go, onSwitch }: { config: HubConfig; go: (s: Scre
                 <span>{weather.temperature}°</span>
               </span>
             )}
-          </div>
+          </button>
           <div className="home-clock">{formatClock(now)}</div>
           <div className="tiles">
             {config.scenes.map((s) => <SceneTile key={s.id} scene={s} />)}

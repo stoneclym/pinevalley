@@ -95,7 +95,7 @@ export function StandBy({ config, go, onSwitch }: { config: HubConfig; go: (s: S
     <div className="standby">
       <WorldMap now={now} home={home} />
 
-      <div className="sb-dateline" onClick={tapDate}>
+      <button type="button" className="sb-dateline dateline-tap" onPointerDown={tapDate} aria-label={formatShortDate(now)}>
         <span>{formatShortDate(now)}</span>
         {weather && weather.temperature !== null && (
           <span className="sb-weather">
@@ -103,7 +103,7 @@ export function StandBy({ config, go, onSwitch }: { config: HubConfig; go: (s: S
             <span>{weather.temperature}°</span>
           </span>
         )}
-      </div>
+      </button>
 
       <div className="sb-clockblock">
         {home && (
